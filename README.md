@@ -46,13 +46,14 @@ Follow the steps below to set up the project:
 
    ```bash
   #Python-Optix requirements
-  export OPTIX_PATH=/path/to/optix0-linux64-x86_64
+  export OPTIX_PATH=/path/to/optix
   export OPTIX_EMBED_HEADERS=1 # embed the optix headers into the package
 
   
   git clone https://github.com/hugobl1/ray_gauss.git
-  cd raygauss
+  cd ray_gauss
   conda env create --file environment.yml
+  conda activate ray_gauss
   ```
 
 

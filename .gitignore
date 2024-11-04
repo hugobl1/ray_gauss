@@ -4,4 +4,3 @@ test_cam_path/
 dataset/*
 !dataset/.gitkeep
 
-install.txt
