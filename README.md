@@ -50,7 +50,7 @@ Follow the steps below to set up the project:
   export OPTIX_EMBED_HEADERS=1 # embed the optix headers into the package
 
   
-  git clone https://github.com/hugobl1/raygauss
+  git clone https://github.com/hugobl1/ray_gauss.git
   cd raygauss
   conda env create --file environment.yml
   ```
