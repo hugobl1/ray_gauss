@@ -11,18 +11,18 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 parser = argparse.ArgumentParser(description='Convert pt tensor to py file.')
-parser.add_argument('-folder', default="saved_tensors", help='folder')
+parser.add_argument('-output', help="Path to output folder")
 parser.add_argument('-iter', help='Checkpoint number')
 parser.add_argument('-save_folder',default="saved_pc",help="Path to save the file")
 args = parser.parse_args()
 
 #Create the folder to save the ply file
-save_folder=os.path.join(args.folder,args.save_folder)
+save_folder=os.path.join(args.output,args.save_folder)
 os.makedirs(save_folder,exist_ok=True)
 
-model_path=os.path.join(args.folder,"model","chkpnt"+str(args.iter)+".pth")
+model_path=os.path.join(args.output,"model","chkpnt"+str(args.iter)+".pth")
 data=torch.load(model_path)
-# data=torch.load(args.folder + "/model" + str(args.iter) + ".pth")
+# data=torch.load(args.output + "/model" + str(args.iter) + ".pth")
 
 # restore_model
 harmonic_number=data[0]
@@ -41,20 +41,20 @@ xyz_gradient_accum_norm=data[11].detach().cpu().numpy()
 num_accum=data[12].detach().cpu().numpy()
 
 #Print the shape of each tensor
-print("harmonic_number: ",harmonic_number)
-print("self.harmonic_number: ",data[0])
-print("self.positions.shape: ",data[1].shape)
-print("self.rgb.shape: ",data[2].shape)
-print("self.spherical_harmonics.shape: ",data[3].shape)
-print("self.densities.shape: ",data[4].shape)
-print("self.scales.shape: ",data[5].shape)
-print("self.quaternions.shape: ",data[6].shape)
-print("self.sph_gauss_features.shape: ",data[7].shape)
-print("self.bandwidth_sharpness.shape: ",data[8].shape)
-print("self.lobe_axis.shape: ",data[9].shape)
-print("num_sph_gauss: ",data[10])
-print("self.xyz_gradient_accum_norm.shape: ",data[11].shape)
-print("self.num_accum: ",data[12].shape)
+# print("harmonic_number: ",harmonic_number)
+# print("self.harmonic_number: ",data[0])
+# print("self.positions.shape: ",data[1].shape)
+# print("self.rgb.shape: ",data[2].shape)
+# print("self.spherical_harmonics.shape: ",data[3].shape)
+# print("self.densities.shape: ",data[4].shape)
+# print("self.scales.shape: ",data[5].shape)
+# print("self.quaternions.shape: ",data[6].shape)
+# print("self.sph_gauss_features.shape: ",data[7].shape)
+# print("self.bandwidth_sharpness.shape: ",data[8].shape)
+# print("self.lobe_axis.shape: ",data[9].shape)
+# print("num_sph_gauss: ",data[10])
+# print("self.xyz_gradient_accum_norm.shape: ",data[11].shape)
+# print("self.num_accum: ",data[12].shape)
 
 
 size_pc=pc.shape[0]
@@ -111,5 +111,6 @@ data.append(xyz_gradient_accum_norm)
 
 # name_save=args.save_folder+"/"+"point_cloud_iter"+str(args.iter)+".ply"
 name_save=os.path.join(save_folder,"point_cloud_iter"+str(args.iter)+".ply")
+print("name_save: ",name_save)
 write_ply(name_save,data,fields)
 
