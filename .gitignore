@@ -1,2 +1,5 @@
 test_cam_path/
+
+# Ignore everything in the dataset directory except the dataset directory itself
 dataset/*
+!dataset/.gitkeep
