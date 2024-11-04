@@ -136,6 +136,36 @@ To visualize a trained scene, we provide the script [main_gui.py](main_gui.py), 
    python main_gui.py -ply_path "path_to_ply_file"
    ```
 
+## Camera Controls
+
+### First Person Camera
+In *First Person* mode, you can use the keyboard keys to move the camera in different directions.
+
+- **Direction Keys**:
+  - `Z`: Move forward
+  - `Q`: Move backward
+  - `S`: Move left
+  - `D`: Move right
+
+- **View Control with Right Click**:
+  - **Right Click + Move Mouse Up**: Look up
+  - **Right Click + Move Mouse Down**: Look down
+  - **Right Click + Move Mouse Left**: Look left
+  - **Right Click + Move Mouse Right**: Look right
+
+> **Note**: Ensure that the *First Person* camera mode is active for these controls to work.
+
+### Trackball Camera
+In *Trackball* mode, the camera can be controlled with the mouse to freely view around an object.
+
+- **Left Click**: Rotate the camera around the object. Hold down the left mouse button and move the mouse to rotate around the object.
+- **Right Click**: Pan. Hold down the right mouse button and move the mouse to shift the view laterally or vertically.
+- **Mouse Wheel**: Zoom in and out. Scroll the wheel to adjust the camera's distance from the object.
+
+> **Note**: Ensure that the *Trackball* camera mode is active for these controls to work.
+
+
+
 # Acknowledgements
 
 We thank the authors of [Python-Optix](https://github.com/mortacious/python-optix), upon which our project is based, as well as the authors of [NeRF](https://github.com/bmild/nerf) and [Mip-NeRF 360](https://github.com/google-research/multinerf) for providing their datasets. Finally, we would like to acknowledge the authors of [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting), as our project's dataloader is inspired by the one used in 3DGS.
