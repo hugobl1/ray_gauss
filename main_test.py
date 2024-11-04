@@ -14,7 +14,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 parser = argparse.ArgumentParser(description="Ray Gauss Training.")
 parser.add_argument("-output", type=str, default="output", help="Path to output folder")
-parser.add_argument("-test_iter", type=int, default=-1, help="Test iteration")
+parser.add_argument("-iter", type=int, default=-1, help="Test iteration")
 args = parser.parse_args()
 
 if __name__ == "__main__":
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         exit()
     path_model = os.path.join(path_output, "model")
     #Check if test_iter==-1
-    if args.test_iter==-1:
+    if args.iter==-1:
         #Get the last iteration you can found in model folder "chkpnt${iter}.pth"
         list_files=os.listdir(path_model)
         list_files.sort()
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         else:
             test_iter=last_iter
     else:
-        test_iter=args.test_iter
+        test_iter=args.iter
 
     config_path = os.path.join(path_output, "config",
                             os.listdir(os.path.join(path_output, "config"))[0])

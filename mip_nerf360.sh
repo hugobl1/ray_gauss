@@ -5,5 +5,5 @@ do
     scene_path="${dataset_path}/${scene}"
     python main_train.py -config "configs/mip_nerf.yml" --save_dir "${scene}" --arg_names scene.source_path --arg_values "${scene_path}"
     output_path="output/${scene}"
-    python main_test.py -output "${output_path}" -test_iter 30000
+    python main_test.py -output "${output_path}" -iter 30000
 done

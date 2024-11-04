@@ -6,5 +6,5 @@ do
     path_ply="${scene_path}/fused_light.ply"
     python main_train.py -config "configs/nerf_synthetic.yml" --save_dir "${scene}" --arg_names scene.source_path pointcloud.ply.path_ply --arg_values "${scene_path}" "${path_ply}"
     output_path="output/${scene}"
-    python main_test.py -output "${output_path}" -test_iter 30000
+    python main_test.py -output "${output_path}" -iter 30000
 done

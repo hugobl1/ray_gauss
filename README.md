@@ -103,10 +103,10 @@ To train and test a single scene, simply use the following commands:
 
    ```bash
     python main_train.py -config "path_to_config_file" --save_dir "name_save_dir" --arg_names scene.source_path --arg_values "scene_path"
-    python main_test.py -output "./output/name_save_dir" -test_iter save_iter
+    python main_test.py -output "./output/name_save_dir" -iter save_iter
     # For example, to train and evaluate the hotdog scene from NeRF Synthetic:
     # python main_train.py -config "./configs/nerf_synthetic.yml" --save_dir "hotdog" --arg_names scene.source_path --arg_values "./dataset/nerf_synthetic/hotdog"
-    # python main_test.py -output "./output/hotdog" -test_iter 30000
+    # python main_test.py -output "./output/hotdog" -iter 30000
 ```
 
 
@@ -116,9 +116,9 @@ By default, only the last iteration is saved (30000 in the base config files).
 # PLY Point Cloud Extraction
 To extract a point cloud in PLY format from a trained scene, we provide the script [convertpth_to_ply.py](convertpth_to_ply.py), which can be used as follows:
    ```bash
-   python convertpth_to_ply.py -folder "./output/name_scene" -iter_chkpnt num_iter
+   python convertpth_to_ply.py -folder "./output/name_scene" -iter num_iter
    # For example, if the 'hotdog' scene was trained for 30000 iterations, you can use:
-   # python convertpth_to_ply.py -folder "./output/hotdog" -iter_chkpnt 30000
+   # python convertpth_to_ply.py -folder "./output/hotdog" -iter 30000
    ```
 
 The generated PLY point cloud will be located in the folder `./output/scene/saved_pc/`.
