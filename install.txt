@@ -1,0 +1,40 @@
+sudo apt install build-essential (gcc, g++)
+=======================
+Installer les drivers
+=======================
+Installer Anaconda
+=======================
+conda create -y -n ray_gauss python=3.10
+conda activate ray_gauss
+=======================
+Installer Cudatoolkit (si l'on passe par conda cela n'install pas nvcc)
+
+Essayer en faisant: sudo apt install nvidia-cuda-toolkit
+
+Finalement, suivre: https://developer.nvidia.com/cuda-toolkit
+=======================
+Installer OptiX : https://developer.nvidia.com/designworks/optix/downloads/legacy
+=======================
+Python-Optix
+export OPTIX_PATH=/home/admincaor/Documents/NVIDIA-OptiX-SDK-7.6.0-linux64-x86_64
+export OPTIX_EMBED_HEADERS=1 # embed the optix headers into the package
+export CUDA_PATH=/usr/local/cuda-12.6/
+python -m pip install python-optix
+=======================
+=======================
+Pytorch (https://pytorch.org/get-started/locally/)
+conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.3 -c pytorch
+
+pip install omegaconf matplotlib tqdm
+pip install submodules/simple-knn/
+
+
+conda install conda-forge::imageio
+conda install anaconda::scikit-image
+conda install conda-forge::plyfile
+
+conda install -c conda-forge optuna  
+conda install conda-forge::joblib
+
+conda env create --file environment.yml
+=======================

@@ -1,0 +1,32 @@
+name: ray_gauss
+channels:
+  # - anaconda
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - cuda-toolkit=12.4
+  # - cudatoolkit=11.7
+  # - cudatoolkit-dev=11.7
+  - python=3.10
+  - numpy=1.23
+  - pip=24.2
+  - pytorch==2.5.0
+  - torchvision==0.20.0
+  - torchaudio==2.5.0
+  - pytorch-cuda=12.4
+  - imageio
+  - scikit-image
+  - plyfile
+  - pip:
+    - glfw
+    - imgui
+    - PyOpenGL
+    - PyOpenGL_accelerate
+    - omegaconf
+    - matplotlib
+    - tqdm
+    - submodules/simple-knn
+    - python-optix
+
