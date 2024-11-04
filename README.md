@@ -47,6 +47,7 @@ Follow the steps below to set up the project:
    ```bash
   #Python-Optix requirements
   export OPTIX_PATH=/path/to/optix
+  #For example if the repo is in your home folder: export OPTIX_PATH=~/NVIDIA-OptiX-SDK-7.6.0-linux64-x86_64/
   export OPTIX_EMBED_HEADERS=1 # embed the optix headers into the package
 
   

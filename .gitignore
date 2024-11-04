@@ -4,3 +4,6 @@ test_cam_path/
 dataset/*
 !dataset/.gitkeep
 
+output/
+
+__pycache__/
