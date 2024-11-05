@@ -57,7 +57,7 @@ if __name__ == "__main__":
         exit()
     path_model = os.path.join(path_output, "model")
     #Check if test_iter==-1
-    if args.test_iter==-1:
+    if args.iter==-1:
         #Get the last iteration you can found in model folder "chkpnt${iter}.pth"
         list_files=os.listdir(path_model)
         list_files.sort()
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         else:
             test_iter=last_iter
     else:
-        test_iter=args.test_iter
+        test_iter=args.iter
 
     config_path = os.path.join(path_output, "config",
                             os.listdir(os.path.join(path_output, "config"))[0])
@@ -81,8 +81,6 @@ if __name__ == "__main__":
     pointcloud = point_cloud.PointCloud(data_type="float32",device="cuda")
     #Load the model
     first_iter=pointcloud.restore_model(test_iter,path_model,config.training.optimization)
-    # print("poincloud.position",pointcloud.positions.shape)
-    # exit(0)
     camera_path_filename = args.camera_path_filename
     cam_list = []
     with open(camera_path_filename, "r", encoding="utf-8") as f:

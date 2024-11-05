@@ -1,5 +1,5 @@
 scene:
-  source_path: "./dataset/nerf_synthetic/ficus"  #"./mipnerf360/360_v2/bicycle" # "./nerf_synthetic/ship" # "tandt_db/db/playroom" #"./nerf_synthetic/hotdog" #"./nerf_synthetic/two_ellipsis/" # "tandt_db/tandt/train" # 
+  source_path: "./dataset/vase"  #"./mipnerf360/360_v2/bicycle" # "./nerf_synthetic/ship" # "tandt_db/db/playroom" #"./nerf_synthetic/hotdog" #"./nerf_synthetic/two_ellipsis/" # "tandt_db/tandt/train" # 
   images: "images"
   data_device: "cuda"
   white_background: true
@@ -7,8 +7,8 @@ scene:
 
   load_allres: True
   resolution: -1
-  train_resolution_scales: [1.0] #Be careful if load_allres==false only one is loaded
-  test_resolution_scales: [1.0]
+  train_resolution_scales: [8.0] #Be careful if load_allres==false only one is loaded
+  test_resolution_scales: [8.0]
 
 pointcloud:
   data_type: "float32"
@@ -22,7 +22,7 @@ pointcloud:
   rg_ply:
     path: "test"
   ply: # if init_method is ply
-    path_ply: "./dataset/nerf_synthetic/ficus/fused_light.ply"
+    path_ply: "./dataset/vase/sparse/0/points3D.ply"
     sh_nb: 1 # number of sh fields to use
     sg_nb: 0 # number of sg fields to use
     default_density: 10.0
@@ -55,7 +55,7 @@ training:
     density:
       scheduler: true
       init_lr: 0.5
-      final_lr: 0.03
+      final_lr: 0.0001
       decay_step: 30000
       delay_step: 0
       donotuse_steps: 0
@@ -118,7 +118,7 @@ training:
   use_random_background: false
   use_prunning: false
   use_prunning_alpha: false
-  max_scale: -1.0
+  max_scale: 0.0
 
 
 save: 

@@ -79,14 +79,12 @@ def getNerfppNorm(cam_info):
     return {"translate": translate, "radius": radius}
 
 def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder,zmin_zmax=None,resize_im=False,scale=1):
-    print(images_folder)
     cam_infos = []
     for idx, key in enumerate(cam_extrinsics):
         #sys.stdout.write('\r')
         # the exact output you're looking for:
         #sys.stdout.write("Reading camera {}/{}".format(idx+1, len(cam_extrinsics)))
         #sys.stdout.flush()
-        # print("Goes here")
 
         extr = cam_extrinsics[key]
         intr = cam_intrinsics[extr.camera_id]
@@ -108,7 +106,6 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder,zmin_zmax=No
             FovX = focal2fov(focal_length_x, width)
         else:
             assert False, "Colmap camera model not handled: only undistorted datasets (PINHOLE or SIMPLE_PINHOLE cameras) supported!"
-
         image_path = os.path.join(images_folder, os.path.basename(extr.name))
         image_name = os.path.basename(image_path).split(".")[0]
         image = Image.open(image_path)
@@ -182,7 +179,6 @@ def readColmapSceneInfo(path, images, eval, config,llffhold=8):
         cameras_intrinsic_file = os.path.join(path, "sparse/0", "cameras.txt")
         cam_extrinsics = read_extrinsics_text(cameras_extrinsic_file)
         cam_intrinsics = read_intrinsics_text(cameras_intrinsic_file)
-    print("cam_intrinsic",cam_intrinsics)
 
     reading_dir = "images" if images == None else images
     #Open poses_bounds.npy if it exists
@@ -231,7 +227,18 @@ def readColmapSceneInfo(path, images, eval, config,llffhold=8):
                     nearest_height =int( Decimal(scaled_intrinsics[key].height/scale).to_integral_value(rounding=ROUND_HALF_UP))
                     ratio_y = nearest_height/scaled_intrinsics[key].height
                     scaled_intrinsics[key]=scaled_intrinsics[key]._replace(height=nearest_height)
-                    scaled_intrinsics[key]=scaled_intrinsics[key]._replace(params=(scaled_intrinsics[key].params[0]*ratio_x,scaled_intrinsics[key].params[1]*ratio_y,scaled_intrinsics[key].params[2]*ratio_x,scaled_intrinsics[key].params[3]*ratio_y))
+                    if scaled_intrinsics[key].model=="SIMPLE_PINHOLE":
+                        scaled_intrinsics[key]=scaled_intrinsics[key]._replace(model="PINHOLE")
+                        f=scaled_intrinsics[key].params[0]
+                        cx,cy=scaled_intrinsics[key].params[1],scaled_intrinsics[key].params[2]
+                        fx,fy=f*ratio_x,f*ratio_y
+                        cx,cy=cx*ratio_x,cy*ratio_y
+                    elif scaled_intrinsics[key].model=="PINHOLE":
+                        fx,fy,cx,cy=scaled_intrinsics[key].params
+                        fx,fy,cx,cy=fx*ratio_x,fy*ratio_y,cx*ratio_x,cy*ratio_y
+                    scaled_params=np.array([fx,fy,cx,cy])
+                    scaled_intrinsics[key]=scaled_intrinsics[key]._replace(params=scaled_params)
+                    # scaled_intrinsics[key]=scaled_intrinsics[key]._replace(params=(scaled_intrinsics[key].params[0]*ratio_x,scaled_intrinsics[key].params[1]*ratio_y,scaled_intrinsics[key].params[2]*ratio_x,scaled_intrinsics[key].params[3]*ratio_y))
                 #Load it
                 #Open poses_bounds.npy if it exists
                 if os.path.exists(os.path.join(path, "poses_bounds.npy")):
@@ -257,7 +264,7 @@ def readColmapSceneInfo(path, images, eval, config,llffhold=8):
     ########################################################################################################################
 
     if config.pointcloud.init_method=="ply":
-        ply_path = config.pointcloud.ply.path
+        ply_path = config.pointcloud.ply.path_ply
         print("ply path", ply_path)
         # ply_path = os.path.join(path, "sparse/0/",config.pointcloud.ply.name_ply)
         # print("ply path", ply_path)

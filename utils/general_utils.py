@@ -71,7 +71,6 @@ def get_data(root="../nerf_example_data/nerf_synthetic/lego", stage="train",
     image_groundtruth = imageio.imread(fpath).astype(np.float32) / 255.0
     #double its size
     # image_groundtruth=np.repeat(np.repeat(image_groundtruth,2,axis=0),2,axis=1)
-    # print("image_groundtruth.shape",image_groundtruth.shape)
     alpha_mask=np.copy(image_groundtruth[..., -1])
     alpha_mask01=np.copy(image_groundtruth[..., -1]>0.1)
     if dilatation:
@@ -137,7 +136,6 @@ def get_rays_torch(height, width, focal, camera_to_world):
   directions_tensor=torch.stack([(it-width*.5)/focal, -(jt-height*.5)/focal, -torch.ones_like(it)], -1)
   # Rotate ray directions from camera frame to the world frame
   # dot product, equals to: [c2w.dot(dir) for dir in dirs]
-  # print("dirs:",directions_tensor)
   rays_direction_tensor = torch.sum(directions_tensor[..., None, :] * camera_to_world_tensor[:3, :3], -1)
   # Translate camera frame's origin to the world frame. It is the origin of all rays.
   rays_origin_tensor=torch.broadcast_to(camera_to_world_tensor[:3, -1], rays_direction_tensor.shape)
@@ -235,21 +233,12 @@ def get_images_origins_directions(all_camera_to_world, all_groundtruth,
     reduced_images=torch.zeros(len(all_groundtruth),height//reduction_factor,width//reduction_factor,3)
     for l in range(len(all_groundtruth)):
       reduced_images[l] = reshape_torch(all_groundtruth[l], reduction_factor)
-      # print("focal",focal)
 
       ray_torch = get_rays_torch(height, width, focal, all_camera_to_world[l])
       origin = ray_torch[0][::reduction_factor, ::reduction_factor]
       direction = ray_torch[1][::reduction_factor, ::reduction_factor]
-      # if l==24:
-      #   print("all_camera_to_world[l]",all_camera_to_world[l])
-      #   print("direction",direction)
       origin_direction_rays[l,0]=origin
       origin_direction_rays[l,1]= direction
-      # print("origin.shape",origin.shape)
-    # im_3=reduced_images[3].detach().cpu().numpy()
-    # print("reduced_images.shape",reduced_images.shape)
-    # plt.imshow(im_3)
-    # plt.show()
   return reduced_images, origin_direction_rays
 
 

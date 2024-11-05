@@ -5,8 +5,6 @@ def define_optimizer_manager(config_opti,pointcloud,lr_list_pos,lr_list_rgb,lr_l
                             lr_list_scale,lr_list_quaternion,
                             lr_list_sph_gauss_features,lr_list_bandwidth_sharpness,lr_list_lobe_axis):
   config_density,config_rgb,config_sh,config_pos,config_scale,config_quaternion,config_sph_gauss_features,config_bandwidth_sharpness,config_lobe_axis=config_opti.density,config_opti.rgb,config_opti.sh,config_opti.position,config_opti.scale,config_opti.quaternion,config_opti.sph_gauss_features,config_opti.bandwidth_sharpness,config_opti.lobe_axis
-  #print("config_pos.scheduler",config_pos.scheduler)
-  #print("config_pos.scheduler.dtype",type(config_pos.scheduler))
   if config_pos.scheduler:
     optim_manag_positions=optimizer.init_ExponentialLR(
     config_pos, pointcloud.positions, lr_decay_steps=(config_pos.decay_step), lr_delay_steps=config_pos.delay_step, lr_list=lr_list_pos,donotuse_steps=config_pos.donotuse_steps
