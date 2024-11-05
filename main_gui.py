@@ -7,7 +7,7 @@ import optix as ox
 from omegaconf import OmegaConf
 from PIL import Image
 # import ctypes
-from scene.dataset_readers import readCamerasFromTransforms
+from scene.dataset_readers import readCamerasFromTransforms,readColmapSceneInfo
 
 import argparse
 import glfw, imgui
@@ -65,8 +65,11 @@ if gui_mode: #Case where we have an output file
 
     #Load cameras information
     config.scene.source_path = os.path.abspath(config.scene.source_path)
-    train_cam_infos = readCamerasFromTransforms(config.scene.source_path, "transforms_train.json", config.scene.white_background, ".png") #Train
-    test_cam_infos = readCamerasFromTransforms(config.scene.source_path, "transforms_test.json", config.scene.white_background, ".png") #Test
+    # train_cam_infos = readCamerasFromTransforms(config.scene.source_path, "transforms_train.json", config.scene.white_background, ".png") #Train
+    # test_cam_infos = readCamerasFromTransforms(config.scene.source_path, "transforms_test.json", config.scene.white_background, ".png") #Test
+    scene_info=readColmapSceneInfo(config.scene.source_path, None, True, config,llffhold=8)
+    train_cam_infos=scene_info.train_cameras[8.0]
+    test_cam_infos=scene_info.test_cameras[8.0]
     train_images=[]
     #Open images in train_images the path of the image is in train_cam_infos[i].image_path
 

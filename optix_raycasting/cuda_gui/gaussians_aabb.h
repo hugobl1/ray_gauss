@@ -28,6 +28,7 @@
 
 #pragma once
 #define BUFFER_SIZE 8
+#define DT 0.0025f
 #define TRANSMITTANCE_EPSILON 0.003f
 #define SIGMA_THRESHOLD 0.1f
 

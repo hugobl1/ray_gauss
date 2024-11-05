@@ -164,6 +164,16 @@ In *Trackball* mode, the camera can be controlled with the mouse to freely view 
 
 > **Note**: Ensure that the *Trackball* camera mode is active for these controls to work.
 
+# Camera Path Rendering
+
+To render a camera path from a trained point cloud, use the script as follows:
+```bash
+python script.py -output "./output" -camera_path_filename "camera_path.json" -name_video "my_video"
+```
+The `camera_path.json` file, which defines the camera path, can be generated using [NeRFStudio](https://nerf.studio/). 
+This script loads a pre-trained model, renders images along a specified camera path, and saves them in `output/camera_path/images/`. A video is then generated from the images and saved in `output/camera_path/video/`.
+
+
 
 
 # Acknowledgements

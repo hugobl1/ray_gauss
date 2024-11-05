@@ -42,7 +42,7 @@ def three_js_perspective_camera_focal_length(fov: float, image_height: int):
 
 parser = argparse.ArgumentParser(description="Ray Gauss Training.")
 parser.add_argument("-output", type=str, default="output", help="Path to output folder")
-parser.add_argument("-test_iter", type=int, default=-1, help="Test iteration")
+parser.add_argument("-iter", type=int, default=-1, help="Test iteration")
 parser.add_argument("-camera_path_filename", type=str, default="camera_path.json", help="Camera path filename")
 parser.add_argument("-name_video", type=str, default="vid", help="Name of the video")
 parser.add_argument("-keep_original_world_coordinates", type=int, default=1, help="Keep original world coordinates") #NerfStudio modified the world frame?

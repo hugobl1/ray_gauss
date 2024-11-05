@@ -7,3 +7,5 @@ dataset/*
 output/
 
 __pycache__/
+
+imgui.ini

@@ -182,22 +182,22 @@ class PointCloud:
                     name_sph_gauss_features="sph_gauss_features",name_bandwidth_sharpness="bandwidth_sharpness",name_lobe_axis="lobe_axis",
                    folder_tensors="saved_tensors"):
     """Load the pointcloud, spherical_harmonics and densities from the folder folder_tensors in the current object."""
-    self.positions=torch.load(folder_tensors+'/'+name_positions+'.pt',weights_only=True)
+    self.positions=torch.load(folder_tensors+'/'+name_positions+'.pt',weights_only=False)
     # self.spherical_harmonics=torch.load(folder_tensors+'/'+name_spherical_harmonics+'.pt')#[:,:,:self.harmonic_number]
-    color_features=torch.load(folder_tensors+'/'+name_spherical_harmonics+'.pt',weights_only=True)
+    color_features=torch.load(folder_tensors+'/'+name_spherical_harmonics+'.pt',weights_only=False)
     # self.rgb=color_features[:,:,0]
     # self.spherical_harmonics=color_features[:,:,1:]
     self.rgb=torch.tensor(color_features[:,:,0].clone(),device=device,dtype=self.data_type).contiguous().requires_grad_(True)
     self.spherical_harmonics=torch.tensor(color_features[:,:,1:].clone(),requires_grad=True,device=device,dtype=self.data_type).contiguous().requires_grad_(True)
     self.harmonic_number=self.spherical_harmonics.shape[2]+1
     
-    self.densities=torch.load(folder_tensors+"/"+name_densities+".pt",weights_only=True)
-    self.scales=torch.load(folder_tensors+"/"+name_scales+".pt",weights_only=True)
-    self.quaternions=torch.load(folder_tensors+"/"+name_quaternions+".pt",weights_only=True)
+    self.densities=torch.load(folder_tensors+"/"+name_densities+".pt",weights_only=False)
+    self.scales=torch.load(folder_tensors+"/"+name_scales+".pt",weights_only=False)
+    self.quaternions=torch.load(folder_tensors+"/"+name_quaternions+".pt",weights_only=False)
 
-    self.sph_gauss_features=torch.load(folder_tensors+"/"+name_sph_gauss_features+".pt",weights_only=True)
-    self.bandwidth_sharpness=torch.load(folder_tensors+"/"+name_bandwidth_sharpness+".pt",weights_only=True)
-    self.lobe_axis=torch.load(folder_tensors+"/"+name_lobe_axis+".pt",weights_only=True)
+    self.sph_gauss_features=torch.load(folder_tensors+"/"+name_sph_gauss_features+".pt",weights_only=False)
+    self.bandwidth_sharpness=torch.load(folder_tensors+"/"+name_bandwidth_sharpness+".pt",weights_only=False)
+    self.lobe_axis=torch.load(folder_tensors+"/"+name_lobe_axis+".pt",weights_only=False)
     self.num_sph_gauss=self.sph_gauss_features.shape[2]
     
     self.xyz_gradient_accum_norm=torch.zeros(len(self.positions),dtype=self.data_type,device=device)
@@ -913,7 +913,7 @@ class PointCloud:
   
   def restore_model(self,iteration,checkpoint_folder,config_opti=None):
     print("Restoring model at iteration ",iteration)
-    data=torch.load(checkpoint_folder + "/chkpnt" + str(iteration) + ".pth",weights_only=True)
+    data=torch.load(checkpoint_folder + "/chkpnt" + str(iteration) + ".pth",weights_only=False)
     self.harmonic_number=data[0]
     self.positions=data[1]
     self.rgb=data[2]

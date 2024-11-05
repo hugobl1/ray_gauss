@@ -242,8 +242,8 @@ extern "C" __global__ void __intersection__gaussian()
     float gaussian_density = params.densities[primitive_index];
     // float sigm_alpha = (1/(1+expf(-gaussian_density)));
 
-    float density_threshold = 0.1f;
-    float ratio= gaussian_density/density_threshold;
+    // float density_threshold = 0.1f;
+    float ratio= gaussian_density/SIGMA_THRESHOLD;
     sphere_scales=sphere_scales*sqrtf(logf(ratio*ratio));
 
     float3 inv_scales=make_float3(1.0f/sphere_scales.x,1.0f/sphere_scales.y,1.0f/sphere_scales.z);
@@ -380,12 +380,12 @@ static __forceinline__ __device__ void computeBufferForward(const unsigned int i
                 float3 xhit_xgaus=hit_sample-gaussian_pos;
                 float3 M_xhit_xgaus=xhit_xgaus.x*M1+xhit_xgaus.y*M2+xhit_xgaus.z*M3;
                 float power=-0.5f*dot(M_xhit_xgaus,M_xhit_xgaus);
-                float weight_density=expf(power);
                 float gaussian_density = params.densities[primitive_index];
-
-                density_buffer[index_buffer]+=gaussian_density*weight_density;
-                color_buffer[index_buffer]+=gaussian_color*weight_density*gaussian_density;
-
+                float weight_density=expf(power)*gaussian_density;
+                if (weight_density> SIGMA_THRESHOLD) {
+                    density_buffer[index_buffer]+=weight_density;
+                    color_buffer[index_buffer]+=gaussian_color*weight_density;
+                }
             }
         }
 }
@@ -437,8 +437,11 @@ extern "C" __global__ void __raygen__rg()
     float tenter=fmaxf(0.0f, fmaxf(tmin.x, fmaxf(tmin.y, tmin.z)));
     float texit=fminf(tmax.x, fminf(tmax.y, tmax.z));
 
-    const float slab_spacing = length(bbox_max - bbox_min) / (1024.0f/BUFFER_SIZE) ;
-    const float dt=slab_spacing/BUFFER_SIZE;
+    // const float slab_spacing = length(bbox_max - bbox_min) / (1024.0f/BUFFER_SIZE) ;
+    // const float dt=slab_spacing/BUFFER_SIZE;
+
+    const float dt=DT;
+    const float slab_spacing = dt*BUFFER_SIZE;
 
     float transmittance = 1.0f;
     float3 ray_color = make_float3(0.0f);
