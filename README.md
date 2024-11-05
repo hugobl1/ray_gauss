@@ -173,8 +173,8 @@ python script.py -output "./output" -camera_path_filename "camera_path.json" -na
 The `camera_path.json` file, which defines the camera path, can be generated using [NeRFStudio](https://nerf.studio/). 
 This script loads a pre-trained model, renders images along a specified camera path, and saves them in `output/camera_path/images/`. A video is then generated from the images and saved in `output/camera_path/video/`.
 
-
-
+# Using a Reality Capture Dataset
+To use a dataset created with Reality Capture, refer to the [Reality Capture Instructions](./reality_capture/README.md).
 
 # Acknowledgements
 
