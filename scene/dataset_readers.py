@@ -264,9 +264,9 @@ def readColmapSceneInfo(path, images, eval, config,llffhold=8):
     ########################################################################################################################
 
     if config.pointcloud.init_method=="ply":
-        ply_path = config.pointcloud.ply.path_ply
-        print("ply path", ply_path)
-        # ply_path = os.path.join(path, "sparse/0/",config.pointcloud.ply.name_ply)
+        ply_path = config.pointcloud.ply.ply_path
+        # print("ply path", ply_path)
+        # ply_path = os.path.join(path, "sparse/0/",config.pointcloud.ply.ply_name)
         # print("ply path", ply_path)
         # ply_path = os.path.join(path, "sparse/0/point_cloud.ply")
         bin_path = os.path.join(path, "sparse/0/points3D.bin")
@@ -354,7 +354,7 @@ def readNerfSyntheticInfo(path, white_background, eval, config,extension=".png")
 
     if config.pointcloud.init_method=="ply":
         # ply_path=os.path.join(path,config.pointcloud.ply.name_ply)
-        ply_path = config.pointcloud.ply.path_ply
+        ply_path = config.pointcloud.ply.ply_path
         if not os.path.exists(ply_path): #If the ply file does not exist, we generate a random point cloud
             # Since this data set has no colmap data, we start with random points
             num_pts = config.pointcloud.ply.n_rnd_pts
@@ -436,7 +436,7 @@ def readMultiScale(path, white_background,split, only_highres=False):
     return cam_infos
 
 
-def readMultiScaleNerfSyntheticInfo(path, white_background, eval, load_allres=False):
+def readMultiScaleNerfSyntheticInfo(path,name_ply, white_background, eval,load_allres=False):
     train_cam_infos = readMultiScale(path, white_background, "train", only_highres=(not load_allres))
     #By default, we load all resolutions for testing
     test_cam_infos = readMultiScale(path, white_background, "test", only_highres=False)
@@ -451,7 +451,8 @@ def readMultiScaleNerfSyntheticInfo(path, white_background, eval, load_allres=Fa
     else:
         nerf_normalization = getNerfppNorm(train_cam_infos)
 
-    ply_path = os.path.join(path, "fused.ply")
+    # ply_path = os.path.join(path, "fused.ply")
+    ply_path = os.path.join(path, name_ply)
     print("ply path", ply_path)
     if not os.path.exists(ply_path):
         # Since this data set has no colmap data, we start with random points

@@ -69,7 +69,7 @@ class PointCloud:
     type=config.init_method
     if type=="ply":
         cfg=config.ply
-        self.load_from_ply(cfg.path_ply,cfg.sh_nb,cfg.sg_nb,cfg.default_density)
+        self.load_from_ply(cfg.ply_path,cfg.sh_nb,cfg.sg_nb,cfg.default_density)
     elif type=="rg_ply":
         cfg=config.rg_ply
         self.load_from_rg_ply(cfg.path)

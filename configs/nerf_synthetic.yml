@@ -22,7 +22,7 @@ pointcloud:
   rg_ply:
     path: "test"
   ply: # if init_method is ply
-    path_ply: "./dataset/nerf_synthetic/ficus/fused_light.ply"
+    ply_name: "fused_light.ply"
     sh_nb: 1 # number of sh fields to use
     sg_nb: 0 # number of sg fields to use
     default_density: 10.0

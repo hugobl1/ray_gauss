@@ -21,6 +21,10 @@ class Scene:
         self.model_path = config.save.tensors
         self.pointcloud = pointcloud
 
+        #Si la méthode d'initialisation est "ply", ajoute une clé "ply_path" à la configuration
+        if (config.pointcloud.init_method == "ply"):
+            config.pointcloud.ply.ply_path = os.path.join(config.scene.source_path, config.pointcloud.ply.ply_name)
+
         #Make sure the path is absolute
         config.scene.source_path = os.path.abspath(config.scene.source_path)
 
@@ -33,7 +37,7 @@ class Scene:
             scene_info = sceneLoadTypeCallbacks["Blender"](config.scene.source_path, config.scene.white_background, config.scene.eval,config)
         elif os.path.exists(os.path.join(config.scene.source_path, "metadata.json")):
             print("Found metadata.json file, assuming multi scale Blender data set!")
-            scene_info = sceneLoadTypeCallbacks["Multi-scale"](config.scene.source_path, config.scene.white_background, config.scene.eval, config.scene.load_allres)
+            scene_info = sceneLoadTypeCallbacks["Multi-scale"](config.scene.source_path,config.pointcloud.ply.ply_name,config.scene.white_background, config.scene.eval, config.scene.load_allres)
         else:
             assert False, "Could not recognize scene type!"
 
