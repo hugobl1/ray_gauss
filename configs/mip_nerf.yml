@@ -2,7 +2,7 @@ scene:
   source_path: "./dataset/mipnerf360/360_v2/bicycle"  #"./mipnerf360/360_v2/bicycle" # "./nerf_synthetic/ship" # "tandt_db/db/playroom" #"./nerf_synthetic/hotdog" #"./nerf_synthetic/two_ellipsis/" # "tandt_db/tandt/train" # 
   images: "images"
   data_device: "cuda"
-  white_background: true
+  white_background: false
   eval: true
 
   load_allres: True
@@ -42,8 +42,8 @@ training:
 
   densify_until_iter: 15000
   densify_from_iter: 500
-  densification_interval: 300
-  densify_grad_threshold: 0.00004
+  densification_interval: 500
+  densify_grad_threshold: 0.000025
 
   jitter: 0
   rnd_sample: 0

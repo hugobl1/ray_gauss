@@ -9,3 +9,7 @@ output/
 __pycache__/
 
 imgui.ini
+
+mip_nerf360_0.sh
+mip_nerf360_1.sh
+mip_nerf360_2.sh
