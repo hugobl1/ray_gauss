@@ -54,7 +54,7 @@ if __name__ == "__main__":
     config=OmegaConf.load(config_path)
 
     test_point_cloud=point_cloud.PointCloud(data_type=config.pointcloud.data_type,device=device)
-    tested_scene=scene.Scene(config=config,pointcloud=test_point_cloud,train_resolution_scales=config.scene.train_resolution_scales,test_resolution_scales=config.scene.test_resolution_scales)
+    tested_scene=scene.Scene(config=config,pointcloud=test_point_cloud,train_resolution_scales=config.scene.train_resolution_scales,test_resolution_scales=config.scene.test_resolution_scales,init_pc=False)
     #Load the model
     first_iter=tested_scene.pointcloud.restore_model(test_iter,path_model,config.training.optimization)
 

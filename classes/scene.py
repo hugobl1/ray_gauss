@@ -16,7 +16,7 @@ from classes import point_cloud
 class Scene:
     "Scene"
 
-    def __init__(self, config , pointcloud : point_cloud.PointCloud, shuffle=False, train_resolution_scales=[1.0], test_resolution_scales=[1.0]):
+    def __init__(self, config , pointcloud : point_cloud.PointCloud, shuffle=False, train_resolution_scales=[1.0], test_resolution_scales=[1.0],init_pc=True):
 
         self.model_path = config.save.tensors
         self.pointcloud = pointcloud
@@ -66,7 +66,8 @@ class Scene:
         self.highest_training_scale = min(self.train_cameras.keys())
         self.highest_testing_scale = min(self.test_cameras.keys())
         
-        self.pointcloud.init_cloud_attributes(config.pointcloud)
+        if init_pc:
+            self.pointcloud.init_cloud_attributes(config.pointcloud)
 
     def save(self, iteration):
         point_cloud_path = os.path.join(self.model_path, "point_cloud/iteration_{}".format(iteration))

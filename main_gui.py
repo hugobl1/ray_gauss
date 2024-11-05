@@ -21,7 +21,7 @@ from gui_utils.gui_state import GeometryState, Params,init_main_params
 
 from gui_utils.glfw_callback import mouse_button_callback, cursor_position_callback, window_size_callback, window_iconify_callback,key_callback,scroll_callback
 from gui_utils.state_handlers import init_launch_params, update_state, launch_subframe, display_subframe, init_camera_state
-from classes import point_cloud
+from classes import point_cloud,scene
 
 parser=argparse.ArgumentParser(description="Ray Gauss GUI: You can either display the output of a training iteration or an rg_ply file. In the first case you must provide the output folder and the iteration to display. In the second case you must provide the path to the rg_ply file")
 parser.add_argument("-output", type=str, help="Path to output folder")
@@ -63,48 +63,6 @@ if gui_mode: #Case where we have an output file
     path_config=os.path.join(args.output,"config","config.yml")
     config=OmegaConf.load(path_config)
 
-    #Load cameras information
-    config.scene.source_path = os.path.abspath(config.scene.source_path)
-    # train_cam_infos = readCamerasFromTransforms(config.scene.source_path, "transforms_train.json", config.scene.white_background, ".png") #Train
-    # test_cam_infos = readCamerasFromTransforms(config.scene.source_path, "transforms_test.json", config.scene.white_background, ".png") #Test
-    scene_info=readColmapSceneInfo(config.scene.source_path, None, True, config,llffhold=8)
-    train_cam_infos=scene_info.train_cameras[8.0]
-    test_cam_infos=scene_info.test_cameras[8.0]
-    train_images=[]
-    #Open images in train_images the path of the image is in train_cam_infos[i].image_path
-
-
-    for i in range(len(train_cam_infos)):
-        train_image=Image.open(train_cam_infos[i].image_path)
-        train_image=np.array(train_image.convert("RGBA"))
-        bg=np.array([1.0,1.0,1.0])
-        norm_data=train_image/255.0
-        arr=norm_data[:,:,:3]*norm_data[:,:,3:4]+bg*(1-norm_data[:,:,3:4])
-        #Mirror the image
-        arr=arr[::-1,:,:]
-        #Reconvert it to 0-255 and 0 for the alpha channel and uint8
-        arr=arr*255
-        arr=arr.astype(np.uint8)
-        train_images.append(arr)
-
-
-    test_images=[]
-    for i in range(len(test_cam_infos)):
-        test_image=Image.open(test_cam_infos[i].image_path)
-        test_image=np.array(test_image.convert("RGBA"))
-        bg=np.array([1.0,1.0,1.0])
-        norm_data=test_image/255.0
-        arr=norm_data[:,:,:3]*norm_data[:,:,3:4]+bg*(1-norm_data[:,:,3:4])
-        #Mirror the image
-        arr=arr[::-1,:,:]
-        arr=arr*255
-        arr=arr.astype(np.uint8)
-        test_images.append(arr)
-
-    default_width=train_images[0].shape[1]
-    default_height=train_images[0].shape[0]
-
-
     #Extract available iterations from config.pointcloud.pointcloud_storage
     path_available_iterations=os.path.join(args.output,"model")
     #List available iterations thanks to file as densities_iter"iteration".pt
@@ -115,6 +73,13 @@ if gui_mode: #Case where we have an output file
     data_type="float32"
     device=torch.device("cuda")
     pointcloud=point_cloud.PointCloud(data_type=data_type,device=device)
+    tested_scene=scene.Scene(config=config,pointcloud=pointcloud,train_resolution_scales=config.scene.train_resolution_scales,test_resolution_scales=config.scene.test_resolution_scales,init_pc=False)
+    train_cam_infos=tested_scene.getTrainCameras()
+    test_cam_infos=tested_scene.getTestCameras()
+    #Permute in shape (H,W,C), mirror the image, convert to numpy, convert to uint8
+    train_images=[(train_cam_infos[i].original_image.permute(1,2,0).cpu().numpy()[::-1,:,:]*255).astype(np.uint8) for i in range(len(train_cam_infos))]
+    test_images=[(test_cam_infos[i].original_image.permute(1,2,0).cpu().numpy()[::-1,:,:]*255).astype(np.uint8) for i in range(len(test_cam_infos))]
+    #Load the model
     pointcloud.restore_model(iteration=args.iter,checkpoint_folder=path_available_iterations)
 else:
     pointcloud=point_cloud.PointCloud(data_type="float32",device=torch.device("cuda"))

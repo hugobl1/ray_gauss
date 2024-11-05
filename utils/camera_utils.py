@@ -48,7 +48,7 @@ def loadCam(args, id, cam_info, resolution_scale):
     
 
     return Camera(colmap_id=cam_info.uid, R=cam_info.R, T=cam_info.T, 
-                  FoVx=cam_info.FovX, FoVy=cam_info.FovY, 
+                  FoVx=cam_info.FoVx, FoVy=cam_info.FoVy, 
                   image=gt_image, gt_alpha_mask=loaded_mask,
                   image_name=cam_info.image_name, uid=id, data_device=args.data_device,
                   Px=cam_info.Px, Py=cam_info.Py, z_near=cam_info.z_near, z_far=cam_info.z_far)
@@ -61,7 +61,7 @@ def cameraList_from_camInfos_native_multi_scale(cam_infos,args):
         loaded_mask = None
         if resized_image_rgb.shape[0] == 4:
             loaded_mask = resized_image_rgb[3:4, ...]
-        camera_list.append(Camera(colmap_id=c.uid, R=c.R, T=c.T, FoVx=c.FovX, FoVy=c.FovY, image=gt_image, gt_alpha_mask=loaded_mask, image_name=c.image_name,
+        camera_list.append(Camera(colmap_id=c.uid, R=c.R, T=c.T, FoVx=c.FoVx, FoVy=c.FoVy, image=gt_image, gt_alpha_mask=loaded_mask, image_name=c.image_name,
                             uid=id, data_device=args.data_device,
                               Px=c.Px, Py=c.Py, 
                               z_near=c.z_near, z_far=c.z_far))
@@ -90,7 +90,7 @@ def camera_to_JSON(id, camera : Camera):
         'height' : camera.height,
         'position': pos.tolist(),
         'rotation': serializable_array_2d,
-        'fy' : fov2focal(camera.FovY, camera.height),
-        'fx' : fov2focal(camera.FovX, camera.width)
+        'fy' : fov2focal(camera.FoVy, camera.height),
+        'fx' : fov2focal(camera.FoVx, camera.width)
     }
     return camera_entry

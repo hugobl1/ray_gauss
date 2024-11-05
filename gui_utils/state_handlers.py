@@ -107,7 +107,7 @@ def handle_test_train_update(state):
         len_look_at=np.dot(state.barycenter-camera.eye, R[:,2])
         camera.look_at = camera.eye+R[:,2]*len_look_at
         camera.up = -R[:,1]
-        camera.fov_y = train_cam_info.FovY*180/np.pi
+        camera.fov_y = train_cam_info.FoVy*180/np.pi
 
         ##############################################
         # state.camera_changed = True
@@ -157,7 +157,7 @@ def handle_test_train_update(state):
         len_look_at=np.dot(state.barycenter-camera.eye, R[:,2])
         camera.look_at = camera.eye+R[:,2]*len_look_at
         camera.up = -R[:,1]
-        camera.fov_y = test_cam_info.FovY*180/np.pi
+        camera.fov_y = test_cam_info.FoVy*180/np.pi
 
         ##############################################
         # state.camera_changed = True

@@ -37,8 +37,8 @@ class CameraInfo(NamedTuple):
     uid: int
     R: np.array
     T: np.array
-    FovY: np.array
-    FovX: np.array
+    FoVy: np.array
+    FoVx: np.array
     image: np.array
     image_path: str
     image_name: str
@@ -97,13 +97,13 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder,zmin_zmax=No
 
         if intr.model=="SIMPLE_PINHOLE":
             focal_length_x = intr.params[0]
-            FovY = focal2fov(focal_length_x, height)
-            FovX = focal2fov(focal_length_x, width)
+            FoVy = focal2fov(focal_length_x, height)
+            FoVx = focal2fov(focal_length_x, width)
         elif intr.model=="PINHOLE":
             focal_length_x = intr.params[0]
             focal_length_y = intr.params[1]
-            FovY = focal2fov(focal_length_y, height)
-            FovX = focal2fov(focal_length_x, width)
+            FoVy = focal2fov(focal_length_y, height)
+            FoVx = focal2fov(focal_length_x, width)
         else:
             assert False, "Colmap camera model not handled: only undistorted datasets (PINHOLE or SIMPLE_PINHOLE cameras) supported!"
         image_path = os.path.join(images_folder, os.path.basename(extr.name))
@@ -124,13 +124,13 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder,zmin_zmax=No
 
         if zmin_zmax is not None:
             z_near, z_far = zmin_zmax[idx]
-            cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
+            cam_info = CameraInfo(uid=uid, R=R, T=T, FoVy=FoVy, FoVx=FoVx, image=image,
                                     image_path=image_path, image_name=image_name, width=width, height=height, z_near=z_near, z_far=z_far)
         else:
-            cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
+            cam_info = CameraInfo(uid=uid, R=R, T=T, FoVy=FoVy, FoVx=FoVx, image=image,
                               image_path=image_path, image_name=image_name, width=width, height=height)
         cam_infos.append(cam_info)
-        # cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
+        # cam_info = CameraInfo(uid=uid, R=R, T=T, FoVy=FoVy, FoVx=FoVx, image=image,
         #                       image_path=image_path, image_name=image_name, width=width, height=height)
     sys.stdout.write('\n')
     return cam_infos
@@ -331,11 +331,11 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
             image = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGB")
             
 
-            fovy = focal2fov(fov2focal(fovx, image.size[0]), image.size[1])
-            FovY = fovy
-            FovX = fovx
+            FoVy = focal2fov(fov2focal(fovx, image.size[0]), image.size[1])
+            FoVy = FoVy
+            FoVx = fovx
 
-            cam_infos.append(CameraInfo(uid=idx, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
+            cam_infos.append(CameraInfo(uid=idx, R=R, T=T, FoVy=FoVy, FoVx=FoVx, image=image,
                             image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
             
     return cam_infos
@@ -421,17 +421,17 @@ def readMultiScale(path, white_background,split, only_highres=False):
         image = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGB")
 
         fovx = focal2fov(meta["focal"][idx], image.size[0])
-        fovy = focal2fov(meta["focal"][idx], image.size[1])
-        FovY = fovy 
-        FovX = fovx
+        FoVy = focal2fov(meta["focal"][idx], image.size[1])
+        FoVy = FoVy 
+        FoVx = fovx
 
         if only_highres:
-            cam_infos.append(CameraInfo(uid=idx, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
+            cam_infos.append(CameraInfo(uid=idx, R=R, T=T, FoVy=FoVy, FoVx=FoVx, image=image,
                         image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
         else:
             width = meta["width"][idx] #Not very clean but ok for now
             scale=800.0/width
-            cam_infos[scale].append(CameraInfo(uid=idx, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
+            cam_infos[scale].append(CameraInfo(uid=idx, R=R, T=T, FoVy=FoVy, FoVx=FoVx, image=image,
                         image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
     return cam_infos
 
