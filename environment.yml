@@ -29,4 +29,5 @@ dependencies:
     - tqdm
     - submodules/simple-knn
     - python-optix
+    - cuda-python
 
