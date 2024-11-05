@@ -44,20 +44,20 @@ if args.iter!="":
     
 
 
-opacities=torch.load(name_op, map_location=torch.device('cpu')).detach().numpy()
+opacities=torch.load(name_op, map_location=torch.device('cpu'),weights_only=True).detach().numpy()
 
-pc=torch.load(name_pc, map_location=torch.device('cpu')).detach().numpy()
+pc=torch.load(name_pc, map_location=torch.device('cpu'),weights_only=True).detach().numpy()
                                                 #colors[:pc.shape[0],:,0]/(2*np.sqrt(np.pi))
 
-gradient_accum=torch.load(name_gradient_accum, map_location=torch.device('cpu')).detach().numpy()
+gradient_accum=torch.load(name_gradient_accum, map_location=torch.device('cpu'),weights_only=True).detach().numpy()
 
 if args.col!="none":
-    colors=torch.load(name_col, map_location=torch.device('cpu')).detach().numpy()
+    colors=torch.load(name_col, map_location=torch.device('cpu'),weights_only=True).detach().numpy()
 else:
     print("No colors")
     colors=np.zeros((pc.shape[0],3,1))
 
-scales=torch.load(name_scale, map_location=torch.device('cpu')).detach().numpy()
+scales=torch.load(name_scale, map_location=torch.device('cpu'),weights_only=True).detach().numpy()
 
 use_rgb=False
 

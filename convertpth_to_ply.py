@@ -21,7 +21,7 @@ save_folder=os.path.join(args.output,args.save_folder)
 os.makedirs(save_folder,exist_ok=True)
 
 model_path=os.path.join(args.output,"model","chkpnt"+str(args.iter)+".pth")
-data=torch.load(model_path)
+data=torch.load(model_path,weights_only=True)
 # data=torch.load(args.output + "/model" + str(args.iter) + ".pth")
 
 # restore_model
