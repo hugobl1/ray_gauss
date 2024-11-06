@@ -55,7 +55,7 @@ if __name__ == "__main__":
     if not os.path.exists(path_output):
         print("Output folder not found")
         exit()
-    path_model = os.path.join(path_output, "model")
+    path_model = os.path.join(path_output, "models")
     #Check if test_iter==-1
     if args.iter==-1:
         #Get the last iteration you can found in model folder "chkpnt${iter}.pth"

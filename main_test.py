@@ -24,7 +24,7 @@ if __name__ == "__main__":
     if not os.path.exists(path_output):
         print("Output folder not found")
         exit()
-    path_model = os.path.join(path_output, "model")
+    path_model = os.path.join(path_output, "models")
     #Check if test_iter==-1
     if args.iter==-1:
         #Get the last iteration you can found in model folder "chkpnt${iter}.pth"
@@ -52,7 +52,9 @@ if __name__ == "__main__":
     ############################################################################################################
 
     config=OmegaConf.load(config_path)
-
+    if config.scene.eval==False:
+        print("This scene was trained with no test data: eval==False")
+        exit()
     test_point_cloud=point_cloud.PointCloud(data_type=config.pointcloud.data_type,device=device)
     tested_scene=scene.Scene(config=config,pointcloud=test_point_cloud,train_resolution_scales=config.scene.train_resolution_scales,test_resolution_scales=config.scene.test_resolution_scales,init_pc=False)
     #Load the model

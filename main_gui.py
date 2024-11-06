@@ -64,7 +64,7 @@ if gui_mode: #Case where we have an output file
     config=OmegaConf.load(path_config)
 
     #Extract available iterations from config.pointcloud.pointcloud_storage
-    path_available_iterations=os.path.join(args.output,"model")
+    path_available_iterations=os.path.join(args.output,"models")
     #List available iterations thanks to file as densities_iter"iteration".pt
     available_iterations=[int(f.split("chkpnt")[1].split(".pt")[0]) for f in os.listdir(path_available_iterations) if "chkpnt" in f]
     #Sort the list

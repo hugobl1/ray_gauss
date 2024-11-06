@@ -20,7 +20,6 @@ if args.save_dir is not None:
 timestamped_dir=os.path.join('output',timestamp)
 os.makedirs(timestamped_dir,exist_ok=True)
 #In this folder, save model, config file
-# os.makedirs(os.path.join(timestamped_dir,"model"),exist_ok=True)
 os.makedirs(os.path.join(timestamped_dir,"config"),exist_ok=True)
 
 config=OmegaConf.load(args.config)
