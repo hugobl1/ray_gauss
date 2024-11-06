@@ -40,12 +40,7 @@ def compute_cupy_rgb(camera_center,cupy_positions,cupy_color_features,
                       degree_sh,num_points,cp_colors_rgb))
     return cp_colors_rgb
     
-def inference(pointcloud,cam_list,max_prim_slice,rnd_sample,supersampling,white_background,hit_prim_idx=None):
-    size_image=cam_list[0].image_width*cam_list[0].image_height
-    #if the size of hit_prim_idx is smaller than the number of rays, we need to resize it
-    if ((hit_prim_idx is None) or (hit_prim_idx.shape[0]<supersampling[0]*supersampling[1]*size_image*max_prim_slice)):
-        hit_prim_idx=cp.zeros((supersampling[0]*supersampling[1]*size_image*max_prim_slice),dtype=cp.int32)
-
+def inference(pointcloud,cam_list,max_prim_slice,rnd_sample,supersampling,white_background,culling=False):
     with torch.no_grad():
       PSNR_list=[]
       #SSIM_list=[]
@@ -82,45 +77,46 @@ def inference(pointcloud,cam_list,max_prim_slice,rnd_sample,supersampling,white_
       order_sh=int(np.sqrt(pointcloud.spherical_harmonics.shape[2]+1).item()-1)
 
       for cam in tqdm(cam_list):
-    #   for cam in cam_list:
-          ################### Start culling ###################
+          if culling:
+            ################### Start culling ###################
+            projected_points=pointcloud.project_points(cam)
+            depth=projected_points[:,2]+1e-6
+            projected_points[:,0]=projected_points[:,0]/depth
+            projected_points[:,1]=projected_points[:,1]/depth
+            mask=depth>0
+            projected_points[:,2]=projected_points[:,2]/depth
 
-          projected_points=pointcloud.project_points(cam)
-          depth=projected_points[:,2]+1e-6
-          projected_points[:,0]=projected_points[:,0]/depth
-          projected_points[:,1]=projected_points[:,1]/depth
-          mask=depth>0
-          projected_points[:,2]=projected_points[:,2]/depth
+            view_points_x=projected_points[:,0]/torch.tan(torch.tensor(cam.FoVx / 2))
+            view_points_y=projected_points[:,1]/torch.tan(torch.tensor(cam.FoVy / 2))
+            mask =  mask&(view_points_x >= -1.3) & (view_points_x <= 1.3) & (view_points_y >= -1.3) & (view_points_y <= 1.3)
+            xyz,color_features,densities,scales,quaternions,sph_gauss_features,bandwidth_sharpness,lobe_axis=pointcloud.select_inside_mask(mask)
+            cp_positions,cp_scales,cp_quaternions, cp_densities, cp_color_features,cp_sph_gauss_features,cp_bandwidth_sharpness,cp_lobe_axis = utilities.torch2cupy(xyz,scales,quaternions,densities,color_features.reshape(-1),
+                                                                                                      sph_gauss_features.reshape(-1),bandwidth_sharpness.reshape(-1),lobe_axis.reshape(-1))
 
-          view_points_x=projected_points[:,0]/torch.tan(torch.tensor(cam.FoVx / 2))
-          view_points_y=projected_points[:,1]/torch.tan(torch.tensor(cam.FoVy / 2))
-          mask =  mask&(view_points_x >= -1.3) & (view_points_x <= 1.3) & (view_points_y >= -1.3) & (view_points_y <= 1.3)
-          xyz,color_features,densities,scales,rotations,sph_gauss_features,bandwidth_sharpness,lobe_axis=pointcloud.select_inside_mask(mask)
-          cp_positions,cp_scales,cp_rotations, cp_densities, cp_color_features,cp_sph_gauss_features,cp_bandwidth_sharpness,cp_lobe_axis = utilities.torch2cupy(xyz,scales,rotations,densities,color_features.reshape(-1),
-                                                                                                    sph_gauss_features.reshape(-1),bandwidth_sharpness.reshape(-1),lobe_axis.reshape(-1))
+            ################### End culling ################### 
+            ################ Update new scene ################
+            L1,L2,L3=u_ox.quaternion_to_rotation(cp_quaternions)
+            bboxes = u_ox.compute_ellipsoids_bbox(cp_positions,cp_scales,L1,L2,L3,cp_densities)  
+            bb_min=bboxes[:,:3].min(axis=0)
+            bb_max=bboxes[:,3:].max(axis=0)
 
-          ################### End culling ################### 
-          L1,L2,L3=u_ox.quaternion_to_rotation(cp_rotations)
-          bboxes = u_ox.compute_ellipsoids_bbox(cp_positions,cp_scales,L1,L2,L3,cp_densities)  
-          bb_min=bboxes[:,:3].min(axis=0)
-          bb_max=bboxes[:,3:].max(axis=0)
+            gas = u_ox.create_acceleration_structure(ctx, bboxes)
+            sbt = u_ox.create_sbt(program_grps, cp_positions,cp_scales,cp_quaternions)
 
-          gas = u_ox.create_acceleration_structure(ctx, bboxes)
-          sbt = u_ox.create_sbt(program_grps, cp_positions,cp_scales,cp_rotations)
+            #Check memory is contiguous
+            pointcloud.check_contiguous()
+            ###############################################
 
-          #Check memory is contiguous
-          pointcloud.check_contiguous()
-
-          cp_color_features=compute_cupy_rgb(cam.camera_center,cp_positions,cp_color_features,
+          cp_color_features_rgb=compute_cupy_rgb(cam.camera_center,cp_positions,cp_color_features,
                           cp_sph_gauss_features,cp_bandwidth_sharpness,cp_lobe_axis,pointcloud.num_sph_gauss,
                           order_sh)
 
 
           ray_colors= u_ox.launch_pipeline_test(pipeline, sbt, gas,bb_min,bb_max,cam,
-                                           cp_densities,cp_color_features,cp_positions,
-                                           cp_scales, cp_rotations,
+                                           cp_densities,cp_color_features_rgb,cp_positions,
+                                           cp_scales, cp_quaternions,
                                            max_prim_slice=max_prim_slice,
-                                            rnd_sample=rnd_sample,supersampling=supersampling,white_background=white_background,hit_prim_idx=hit_prim_idx)
+                                            rnd_sample=rnd_sample,supersampling=supersampling,white_background=white_background)
 
           ray_colors=from_dlpack(ray_colors.toDlpack())
           ray_colors_mean=utilities.reduce_supersampling(cam.image_width,cam.image_height,ray_colors,supersampling)

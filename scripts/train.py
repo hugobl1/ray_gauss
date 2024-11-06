@@ -205,7 +205,7 @@ def train(config, quiet=True):
       SSIM_list_test_scales=[]
       LPIPS_list_test_scales=[]
       for scale in config.scene.train_resolution_scales:
-        PSNR_list_train,gt_images_list,images_list=test.inference(opt_scene.pointcloud,opt_scene.getTrainCameras([scale]),config.training.max_prim_slice,rnd_sample=config.training.rnd_sample,supersampling=(config.training.supersampling_x,config.training.supersampling_y), white_background=config.scene.white_background,hit_prim_idx=hit_prim_idx)
+        PSNR_list_train,gt_images_list,images_list=test.inference(opt_scene.pointcloud,opt_scene.getTrainCameras([scale]),config.training.max_prim_slice,rnd_sample=config.training.rnd_sample,supersampling=(config.training.supersampling_x,config.training.supersampling_y), white_background=config.scene.white_background)
         PSNR_list_train_scales.append(np.mean(PSNR_list_train))
         tqdm.write(f"[ITER]: {iter} \tPSNR Train scale {1.0/scale} (mean): {np.mean(PSNR_list_train):.3f}")
         if not quiet:
@@ -214,7 +214,7 @@ def train(config, quiet=True):
         for i in range(len(images_list)):
           plt.imsave(config.save.screenshots+"/train/"+"iter"+str(iter)+"scale"+str(1.0/scale)+"_"+str(i)+"_pred.png",images_list[i])
       for scale in config.scene.test_resolution_scales:
-        PSNR_list_test,gt_images_list,images_list=test.inference(opt_scene.pointcloud,opt_scene.getTestCameras([scale]),config.training.max_prim_slice,rnd_sample=config.training.rnd_sample,supersampling=(config.training.supersampling_x,config.training.supersampling_y), white_background=config.scene.white_background,hit_prim_idx=hit_prim_idx)
+        PSNR_list_test,gt_images_list,images_list=test.inference(opt_scene.pointcloud,opt_scene.getTestCameras([scale]),config.training.max_prim_slice,rnd_sample=config.training.rnd_sample,supersampling=(config.training.supersampling_x,config.training.supersampling_y), white_background=config.scene.white_background)
         PSNR_list_test_scales.append(np.mean(PSNR_list_test))
         ##
         SSIM_test,LPIPS_test=0,0

@@ -301,7 +301,7 @@ def launch_pipeline_backward(pipeline : ox.Pipeline, sbt, gas,bbox_min,bbox_max,
 
 def launch_pipeline_test(pipeline : ox.Pipeline, sbt, gas,bbox_min,bbox_max,camera,
                     densities,color_features,positions,scales,quaternions,
-                    max_prim_slice,rnd_sample,supersampling,white_background,hit_prim_idx):
+                    max_prim_slice,rnd_sample,supersampling,white_background):
     ray_size=(camera.image_height*camera.image_width*supersampling[0]*supersampling[1],)
     params_tmp = [
         ( 'u4', 'rnd_sample'),
