@@ -134,12 +134,7 @@ def inference(pointcloud,cam_list,max_prim_slice,rnd_sample,supersampling,white_
 
       return PSNR_list, gt_images_list, images_list
     
-def render(pointcloud,cam_list,max_prim_slice,rnd_sample,supersampling,white_background,hit_prim_idx=None):
-    size_image=cam_list[0].image_width*cam_list[0].image_height
-    #if the size of hit_prim_idx is smaller than the number of rays, we need to resize it
-    if ((hit_prim_idx is None) or (hit_prim_idx.shape[0]<supersampling[0]*supersampling[1]*size_image*max_prim_slice)):
-        hit_prim_idx=cp.zeros((supersampling[0]*supersampling[1]*size_image*max_prim_slice),dtype=cp.int32)
-
+def render(pointcloud,cam_list,max_prim_slice,rnd_sample,supersampling,white_background):
     with torch.no_grad():
       images_list=[]
 
@@ -217,7 +212,7 @@ def render(pointcloud,cam_list,max_prim_slice,rnd_sample,supersampling,white_bac
                                            cp_densities,cp_color_features,cp_positions,
                                            cp_scales, cp_quaternions,
                                            max_prim_slice=max_prim_slice,
-                                            rnd_sample=rnd_sample,supersampling=supersampling,white_background=white_background,hit_prim_idx=hit_prim_idx)
+                                            rnd_sample=rnd_sample,supersampling=supersampling,white_background=white_background)
 
           ray_colors=from_dlpack(ray_colors.toDlpack())
           ray_colors_mean=utilities.reduce_supersampling(cam.image_width,cam.image_height,ray_colors,supersampling)

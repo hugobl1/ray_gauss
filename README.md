@@ -64,7 +64,7 @@ Please download and unzip [nerf_synthetic.zip](https://drive.google.com/file/d/1
 
 #### Trained Models
 
-If you would like to directly visualize a model trained by RayGauss, we provide the trained point clouds for each scene in NeRF-Synthetic. In this case, you can skip the training of the scene and evaluate or visualize it directly: [Download Link](https://drive.google.com/file/d/1dltL3qYVQLhZmGbiqw6ELYp-ED5Ivryq/view?usp=sharing).
+If you would like to directly visualize a model trained by RayGauss, we provide the trained point clouds for each scene in NeRF-Synthetic. In this case, you can skip the training of the scene and evaluate or visualize it directly: [Download Link](https://drive.google.com/file/d/1E0_Tg2QeMx2kyohPhfRtfV656oQFQ2Kv/view?usp=sharing).
 
 
 ### Mip-NeRF 360 Dataset
@@ -121,9 +121,9 @@ By default, only the last iteration is saved (30000 in the base config files).
 # PLY Point Cloud Extraction
 To extract a point cloud in PLY format from a trained scene, we provide the script [convertpth_to_ply.py](convertpth_to_ply.py), which can be used as follows:
    ```bash
-   python convertpth_to_ply.py -folder "./output/name_scene" -iter num_iter
+   python convertpth_to_ply.py -output "./output/name_scene" -iter num_iter
    # For example, if the 'hotdog' scene was trained for 30000 iterations, you can use:
-   # python convertpth_to_ply.py -folder "./output/hotdog" -iter 30000
+   # python convertpth_to_ply.py -output "./output/hotdog" -iter 30000
    ```
 
 The generated PLY point cloud will be located in the folder `./output/scene/saved_pc/`.
@@ -173,7 +173,7 @@ In *Trackball* mode, the camera can be controlled with the mouse to freely view 
 
 To render a camera path from a trained point cloud, use the script as follows:
 ```bash
-python script.py -output "./output" -camera_path_filename "camera_path.json" -name_video "my_video"
+python render_camera_path.py -output "./output" -camera_path_filename "camera_path.json" -name_video "my_video"
 ```
 The `camera_path.json` file, which defines the camera path, can be generated using [NeRFStudio](https://nerf.studio/). 
 This script loads a pre-trained model, renders images along a specified camera path, and saves them in `output/camera_path/images/`. A video is then generated from the images and saved in `output/camera_path/video/`.

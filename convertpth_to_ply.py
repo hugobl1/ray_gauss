@@ -11,8 +11,8 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 parser = argparse.ArgumentParser(description='Convert pt tensor to py file.')
-parser.add_argument('-output', help="Path to output folder")
-parser.add_argument('-iter', help='Checkpoint number')
+parser.add_argument('-output', required=True, help="Path to output folder")
+parser.add_argument('-iter', required=True,help='Checkpoint number')
 parser.add_argument('-save_folder',default="saved_pc",help="Path to save the file")
 args = parser.parse_args()
 
