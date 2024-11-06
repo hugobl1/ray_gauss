@@ -76,14 +76,6 @@ def get_data(root="../nerf_example_data/nerf_synthetic/lego", stage="train",
     if dilatation:
       alpha_mask_border01=ndimage.binary_dilation(alpha_mask01,iterations=number_dilatations)
       # alpha_mask_border01=np.logical_xor(alpha_mask_border01,alpha_mask01)
-      # #Save alpha_mask_border01 the blue channel of the image
-      # save_image_dilate=np.zeros((image_groundtruth.shape[0],image_groundtruth.shape[1],3))
-      # save_image_dilate[...,2]=alpha_mask_border01
-      # #Save it in other_results0
-      # plt.imsave("other_results0/dilated"+os.path.basename(frame["file_path"])+".png",save_image_dilate)
-      # save_image=np.zeros((image_groundtruth.shape[0],image_groundtruth.shape[1],3))
-      # save_image[...,2]=alpha_mask01
-      # plt.imsave("other_results0/alpha_mask01"+os.path.basename(frame["file_path"])+".png",save_image)
     if white_background:
       image_groundtruth = image_groundtruth[...,:3]*image_groundtruth[...,-1:] + (1.-image_groundtruth[...,-1:])
     else:

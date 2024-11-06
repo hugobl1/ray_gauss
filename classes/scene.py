@@ -18,7 +18,7 @@ class Scene:
 
     def __init__(self, config , pointcloud : point_cloud.PointCloud, shuffle=False, train_resolution_scales=[1.0], test_resolution_scales=[1.0],init_pc=True):
 
-        self.model_path = config.save.tensors
+        self.model_path = config.save.models
         self.pointcloud = pointcloud
 
         #Si la méthode d'initialisation est "ply", ajoute une clé "ply_path" à la configuration

@@ -20,18 +20,18 @@ if args.save_dir is not None:
 timestamped_dir=os.path.join('output',timestamp)
 os.makedirs(timestamped_dir,exist_ok=True)
 #In this folder, save model, config file
-os.makedirs(os.path.join(timestamped_dir,"model"),exist_ok=True)
+# os.makedirs(os.path.join(timestamped_dir,"model"),exist_ok=True)
 os.makedirs(os.path.join(timestamped_dir,"config"),exist_ok=True)
 
 config=OmegaConf.load(args.config)
 
-config.save.tensors=os.path.join(timestamped_dir, config.save.tensors)
+config.save.models=os.path.join(timestamped_dir, config.save.models)
 config.save.screenshots=os.path.join(timestamped_dir, config.save.screenshots)
-config.save.other_results=os.path.join(timestamped_dir, config.save.other_results)
-os.makedirs(config.save.tensors,exist_ok=True)
+config.save.metrics=os.path.join(timestamped_dir, config.save.metrics)
+os.makedirs(config.save.models,exist_ok=True)
 os.makedirs(os.path.join(config.save.screenshots,"train"),exist_ok=True)
 os.makedirs(os.path.join(config.save.screenshots,"test"),exist_ok=True)
-os.makedirs(config.save.other_results,exist_ok=True)
+os.makedirs(config.save.metrics,exist_ok=True)
 ############################################################################################################
 
 if args.arg_names is not None and args.arg_values is not None:
@@ -72,5 +72,5 @@ if __name__ == "__main__":
   psnr_test,opt_scene=train(config,quiet=True)
   print("PSNR : ",psnr_test)
   #Save model at the end of the training
-  opt_scene.pointcloud.save_model(config.training.n_iters ,os.path.join(timestamped_dir,"model"))
+  opt_scene.pointcloud.save_model(config.training.n_iters ,config.save.models)
 

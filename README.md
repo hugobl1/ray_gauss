@@ -62,6 +62,11 @@ Follow the steps below to set up the project:
 ### NeRF Synthetic Dataset
 Please download and unzip [nerf_synthetic.zip](https://drive.google.com/file/d/1a3l9OL2lRA3z490QFNoDdZuUxTWrbdtD/view?usp=sharing). The folder contains initialization point clouds and the NeRF-Synthetic dataset.
 
+#### Trained Models
+
+If you would like to directly visualize a model trained by RayGauss, we provide the trained point clouds for each scene in NeRF-Synthetic. In this case, you can skip the training of the scene and evaluate or visualize it directly: [Download Link](https://drive.google.com/file/d/1dltL3qYVQLhZmGbiqw6ELYp-ED5Ivryq/view?usp=sharing).
+
+
 ### Mip-NeRF 360 Dataset
 Please download the data from the [Mip-NeRF 360](https://jonbarron.info/mipnerf360/) website.
 

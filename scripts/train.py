@@ -128,16 +128,15 @@ def train(config, quiet=True):
 
     losses.append(train_loss.item())
     
-    if iter%10==0:
-      # tqdm.write(f"Train Epoch: {train_epoch} [{batch_index}/{num_batches} ({100.0 * batch_index / num_batches:.0f}%)]\tLoss: {train_loss.data.item():.6f}")
-      if iter%1000==0 and iter>0: 
-        opt_scene.pointcloud.check_required_grad()
-        if not quiet:
-          tqdm.write(f"Number points : {len(opt_scene.pointcloud.positions)}")
-
-    if (iter>0) and (iter%500==0 or (iter==config.training.n_iters-1)):
+    if iter%1000==0 and iter>0: 
+      opt_scene.pointcloud.check_required_grad()
       if not quiet:
-        opt_scene.pointcloud.save_pt_epoch(iter,folder_tensors=config.save.tensors)
+        tqdm.write(f"Number points : {len(opt_scene.pointcloud.positions)}")
+
+    if (iter>0) and (iter%500==0):
+      if not quiet:
+        # opt_scene.pointcloud.save_pt_epoch(iter,folder_tensors=config.save.models)
+        opt_scene.pointcloud.save_model(iter,config.save.models)
         print("Number gaussians not visible deleted : ", len(opt_scene.pointcloud.densities)-torch.sum(opt_scene.pointcloud.num_accum_gnv>0).item())
       #if (iter==config.training.n_iters-1):
       # opt_scene.pointcloud.delete_gaussians_not_seen()
@@ -188,22 +187,16 @@ def train(config, quiet=True):
     ############################################################################################################
     ################################ Saving and testing part ##################################################
     ############################################################################################################
-    # if (iter==7000) or (iter==15000) or (iter==23000) or(iter==29999):
     if (not quiet and iter%1000==0) or (iter==config.training.n_iters-1):
-    # if(iter%1000==0 and iter>0)or(iter==config.training.n_iters-1):
-      #Save tensor in separate format
-      # opt_scene.pointcloud.save_pt_epoch(iter,folder_tensors=config.save.tensors)
       #Save the model
       if (iter==config.training.n_iters-1):
         end_time=time.time()
         training_time=end_time-start_time
-        opt_scene.pointcloud.save_model(iter,config.save.tensors)
+        # opt_scene.pointcloud.save_model(iter,config.save.models)
       tqdm.write(f"[ITER]: {iter} Number points : {len(opt_scene.pointcloud.positions)}")
 
+      ## Train
       PSNR_list_train_scales=[]
-      PSNR_list_test_scales=[]
-      SSIM_list_test_scales=[]
-      LPIPS_list_test_scales=[]
       for scale in config.scene.train_resolution_scales:
         PSNR_list_train,gt_images_list,images_list=test.inference(opt_scene.pointcloud,opt_scene.getTrainCameras([scale]),config.training.max_prim_slice,rnd_sample=config.training.rnd_sample,supersampling=(config.training.supersampling_x,config.training.supersampling_y), white_background=config.scene.white_background)
         PSNR_list_train_scales.append(np.mean(PSNR_list_train))
@@ -213,52 +206,65 @@ def train(config, quiet=True):
           tqdm.write(f"[ITER]: {iter} \tPSNR Train scale {1.0/scale} (max): {np.max(PSNR_list_train):.3f} \tIndex image {np.argmax(PSNR_list_train)}")
         for i in range(len(images_list)):
           plt.imsave(config.save.screenshots+"/train/"+"iter"+str(iter)+"scale"+str(1.0/scale)+"_"+str(i)+"_pred.png",images_list[i])
-      for scale in config.scene.test_resolution_scales:
-        PSNR_list_test,gt_images_list,images_list=test.inference(opt_scene.pointcloud,opt_scene.getTestCameras([scale]),config.training.max_prim_slice,rnd_sample=config.training.rnd_sample,supersampling=(config.training.supersampling_x,config.training.supersampling_y), white_background=config.scene.white_background)
-        PSNR_list_test_scales.append(np.mean(PSNR_list_test))
-        ##
-        SSIM_test,LPIPS_test=0,0
-        for i in range(len(images_list)):
-          permute_images=torch.tensor(images_list[i].transpose(2,0,1),dtype=torch.float32,device=device)[None,...]
-          permute_gt_images=torch.tensor(gt_images_list[i].transpose(2,0,1),dtype=torch.float32,device=device)[None,...]
-          SSIM_test+=ssim(permute_images, permute_gt_images).item()
-          LPIPS_test+=lpips(permute_images, permute_gt_images, net_type='vgg').item()
-        SSIM_list_test_scales.append(SSIM_test/len(images_list))
-        LPIPS_list_test_scales.append(LPIPS_test/len(images_list))
-        tqdm.write(f"[ITER]: {iter} \tSSIM Test scale {1.0/scale} (mean): {SSIM_test/len(images_list):.3f}")
-        tqdm.write(f"[ITER]: {iter} \tLPIPS Test scale {1.0/scale} (mean): {LPIPS_test/len(images_list):.3f}")
-        ##
-        tqdm.write(f"[ITER]: {iter} \tPSNR Test scale {1.0/scale} (mean): {np.mean(PSNR_list_test):.3f}")
-        if not quiet:
-          tqdm.write(f"[ITER]: {iter} \tPSNR Test scale {1.0/scale} (min): {np.min(PSNR_list_test):.3f} \tIndex image {np.argmin(PSNR_list_test)}")
-          tqdm.write(f"[ITER]: {iter} \tPSNR Test scale {1.0/scale} (max): {np.max(PSNR_list_test):.3f} \tIndex image {np.argmax(PSNR_list_test)}")
-        for i in range(len(images_list)):
-          plt.imsave(config.save.screenshots+"/test/"+"iter"+str(iter)+"scale"+str(1.0/scale)+"_"+str(i)+"_pred.png",images_list[i])
+      
+      ## Test
+      if config.scene.eval:
+        PSNR_list_test_scales=[]
+        SSIM_list_test_scales=[]
+        LPIPS_list_test_scales=[]
+        for scale in config.scene.test_resolution_scales:
+          PSNR_list_test,gt_images_list,images_list=test.inference(opt_scene.pointcloud,opt_scene.getTestCameras([scale]),config.training.max_prim_slice,rnd_sample=config.training.rnd_sample,supersampling=(config.training.supersampling_x,config.training.supersampling_y), white_background=config.scene.white_background)
+          PSNR_list_test_scales.append(np.mean(PSNR_list_test))
+          ##
+          SSIM_test,LPIPS_test=0,0
+          for i in range(len(images_list)):
+            permute_images=torch.tensor(images_list[i].transpose(2,0,1),dtype=torch.float32,device=device)[None,...]
+            permute_gt_images=torch.tensor(gt_images_list[i].transpose(2,0,1),dtype=torch.float32,device=device)[None,...]
+            SSIM_test+=ssim(permute_images, permute_gt_images).item()
+            LPIPS_test+=lpips(permute_images, permute_gt_images, net_type='vgg').item()
+          SSIM_list_test_scales.append(SSIM_test/len(images_list))
+          LPIPS_list_test_scales.append(LPIPS_test/len(images_list))
+          tqdm.write(f"[ITER]: {iter} \tSSIM Test scale {1.0/scale} (mean): {SSIM_test/len(images_list):.3f}")
+          tqdm.write(f"[ITER]: {iter} \tLPIPS Test scale {1.0/scale} (mean): {LPIPS_test/len(images_list):.3f}")
+          ##
+          tqdm.write(f"[ITER]: {iter} \tPSNR Test scale {1.0/scale} (mean): {np.mean(PSNR_list_test):.3f}")
+          if not quiet:
+            tqdm.write(f"[ITER]: {iter} \tPSNR Test scale {1.0/scale} (min): {np.min(PSNR_list_test):.3f} \tIndex image {np.argmin(PSNR_list_test)}")
+            tqdm.write(f"[ITER]: {iter} \tPSNR Test scale {1.0/scale} (max): {np.max(PSNR_list_test):.3f} \tIndex image {np.argmax(PSNR_list_test)}")
+          for i in range(len(images_list)):
+            plt.imsave(config.save.screenshots+"/test/"+"iter"+str(iter)+"scale"+str(1.0/scale)+"_"+str(i)+"_pred.png",images_list[i])
+
       #Save PSNR and SSIM in a file
-      with open(config.save.other_results+'/PSNR_SSIM.txt', 'a') as f:
+      with open(config.save.metrics+'/PSNR_SSIM.txt', 'a') as f:
         f.write(config.scene.source_path+"\n")
         if (iter==config.training.n_iters-1):
           f.write("Training time: "+str(training_time)+"\n")
         f.write(" Iteration: "+str(iter)+"\n")
         f.write("Number points: "+ str(len(opt_scene.pointcloud.positions))+"\n")
+        ##Train
         for i,scale in enumerate(config.scene.train_resolution_scales):
           f.write("PSNR Train scale "+str(1.0/scale)+" (mean): "+str(PSNR_list_train_scales[i])+"\n")
-        for i,scale in enumerate(config.scene.test_resolution_scales):
-          f.write("PSNR Test scale "+str(1.0/scale)+" (mean): "+str(PSNR_list_test_scales[i])+"\n")
-        ## SSIM and LPIPS
-        for i,scale in enumerate(config.scene.test_resolution_scales):
-          f.write("SSIM Test scale "+str(1.0/scale)+" (mean): "+str(SSIM_list_test_scales[i])+"\n")
-          f.write("LPIPS Test scale "+str(1.0/scale)+" (mean): "+str(LPIPS_list_test_scales[i])+"\n")
-        ##
-        if len(config.scene.train_resolution_scales)>1:
-          f.write("PSNR Train multiscale(mean): "+str(np.mean(PSNR_list_train_scales))+"\n")
-        if len(config.scene.test_resolution_scales)>1:
-          f.write("PSNR Test multiscale(mean): "+str(np.mean(PSNR_list_test_scales))+"\n")
-        f.write("\n")
-        mean_psnr_test.append(np.mean(PSNR_list_test_scales))
         mean_psnr_train.append(np.mean(PSNR_list_train_scales))
+        ##Test
+        if config.scene.eval:
+          for i,scale in enumerate(config.scene.test_resolution_scales):
+            f.write("PSNR Test scale "+str(1.0/scale)+" (mean): "+str(PSNR_list_test_scales[i])+"\n")
+          ## SSIM and LPIPS
+          for i,scale in enumerate(config.scene.test_resolution_scales):
+            f.write("SSIM Test scale "+str(1.0/scale)+" (mean): "+str(SSIM_list_test_scales[i])+"\n")
+            f.write("LPIPS Test scale "+str(1.0/scale)+" (mean): "+str(LPIPS_list_test_scales[i])+"\n")
+          ##
+          if len(config.scene.train_resolution_scales)>1:
+            f.write("PSNR Train multiscale(mean): "+str(np.mean(PSNR_list_train_scales))+"\n")
+          if len(config.scene.test_resolution_scales)>1:
+            f.write("PSNR Test multiscale(mean): "+str(np.mean(PSNR_list_test_scales))+"\n")
+          f.write("\n")
+          mean_psnr_test.append(np.mean(PSNR_list_test_scales))
   ############################################################################################################
 
   config.training.optimization.position.init_lr = config.training.optimization.position.init_lr/float(opt_scene.cameras_extent)
   config.training.optimization.position.final_lr = config.training.optimization.position.final_lr/float(opt_scene.cameras_extent)
-  return mean_psnr_test[-1],opt_scene
+  if config.scene.eval:
+    return mean_psnr_test[-1],opt_scene
+  else:
+    return mean_psnr_train[-1],opt_scene

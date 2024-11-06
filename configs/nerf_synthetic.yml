@@ -122,6 +122,6 @@ training:
 
 
 save: 
-  tensors: "saved_tensors"
+  models: "models"
   screenshots: "train_results/screenshots"
-  other_results: "train_results/other_results"
+  metrics: "train_results/metrics"
