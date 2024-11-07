@@ -166,50 +166,16 @@ def render(pointcloud,cam_list,max_prim_slice,rnd_sample,supersampling,white_bac
       sbt = u_ox.create_sbt(program_grps, cp_positions,cp_scales,cp_quaternions)
 
       order_sh=int(np.sqrt(pointcloud.spherical_harmonics.shape[2]+1).item()-1)
-
+      #Check memory is contiguous
+      pointcloud.check_contiguous()
       for cam in tqdm(cam_list):
-    #   for cam in cam_list:
-        #   ################### Start culling ###################
-
-        #   projected_points=pointcloud.project_points(cam)
-        #   depth=projected_points[:,2]+1e-6
-        #   projected_points[:,0]=projected_points[:,0]/depth
-        #   projected_points[:,1]=projected_points[:,1]/depth
-        #   mask=depth>0
-        #   projected_points[:,2]=projected_points[:,2]/depth
-
-        #   view_points_x=projected_points[:,0]/torch.tan(torch.tensor(cam.FoVx / 2))
-        #   view_points_y=projected_points[:,1]/torch.tan(torch.tensor(cam.FoVy / 2))
-        #   mask =  mask&(view_points_x >= -1.3) & (view_points_x <= 1.3) & (view_points_y >= -1.3) & (view_points_y <= 1.3)
-
-        #   xyz,color_features,densities,scales,rotations,sph_gauss_features,bandwidth_sharpness,lobe_axis=pointcloud.select_inside_mask(mask)
-        #   cp_positions,cp_scales,cp_quaternions, cp_densities, cp_color_features,cp_sph_gauss_features,cp_bandwidth_sharpness,cp_lobe_axis = utilities.torch2cupy(xyz,scales,rotations,densities,color_features.reshape(-1),
-        #                                                                                             sph_gauss_features.reshape(-1),bandwidth_sharpness.reshape(-1),lobe_axis.reshape(-1))
-
-        #   ################### End culling ################### 
-          cp_positions,cp_scales, cp_quaternions,cp_densities, cp_color_features,cp_sph_gauss_features,cp_bandwidth_sharpness,cp_lobe_axis = utilities.torch2cupy(pointcloud.positions,
-                                                            pointcloud.get_scale(),pointcloud.get_normalized_quaternion(), 
-                                                            pointcloud.get_density(), pointcloud.get_color_features().reshape(-1),
-                                                            pointcloud.sph_gauss_features.reshape(-1),pointcloud.get_bandwidth_sharpness().reshape(-1),
-                                                            pointcloud.get_lobe_axis().reshape(-1))
-          L1,L2,L3=u_ox.quaternion_to_rotation(cp_quaternions)
-          bboxes = u_ox.compute_ellipsoids_bbox(cp_positions,cp_scales,L1,L2,L3,cp_densities)  
-          bb_min=bboxes[:,:3].min(axis=0)
-          bb_max=bboxes[:,3:].max(axis=0)
-
-          gas = u_ox.create_acceleration_structure(ctx, bboxes)
-          sbt = u_ox.create_sbt(program_grps, cp_positions,cp_scales,cp_quaternions)
-
-          #Check memory is contiguous
-          pointcloud.check_contiguous()
-
-          cp_color_features=compute_cupy_rgb(cam.camera_center,cp_positions,cp_color_features,
+          cp_color_features_rgb=compute_cupy_rgb(cam.camera_center,cp_positions,cp_color_features,
                           cp_sph_gauss_features,cp_bandwidth_sharpness,cp_lobe_axis,pointcloud.num_sph_gauss,
                           order_sh)
 
 
           ray_colors= u_ox.launch_pipeline_test(pipeline, sbt, gas,bb_min,bb_max,cam,
-                                           cp_densities,cp_color_features,cp_positions,
+                                           cp_densities,cp_color_features_rgb,cp_positions,
                                            cp_scales, cp_quaternions,
                                            max_prim_slice=max_prim_slice,
                                             rnd_sample=rnd_sample,supersampling=supersampling,white_background=white_background)
@@ -219,8 +185,6 @@ def render(pointcloud,cam_list,max_prim_slice,rnd_sample,supersampling,white_bac
 
           ray_colors_numpy = ray_colors_mean.detach().cpu().numpy().clip(0,1)
 
-        #   plt.imsave("test.png",ray_colors_numpy)
-        #   exit(0)
           images_list.append(ray_colors_numpy)
 
       return images_list
