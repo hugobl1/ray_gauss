@@ -168,23 +168,29 @@ def render(pointcloud,cam_list,max_prim_slice,rnd_sample,supersampling,white_bac
       order_sh=int(np.sqrt(pointcloud.spherical_harmonics.shape[2]+1).item()-1)
       #Check memory is contiguous
       pointcloud.check_contiguous()
+    #   mean_time=[]
       for cam in tqdm(cam_list):
           cp_color_features_rgb=compute_cupy_rgb(cam.camera_center,cp_positions,cp_color_features,
                           cp_sph_gauss_features,cp_bandwidth_sharpness,cp_lobe_axis,pointcloud.num_sph_gauss,
                           order_sh)
 
-
+        #   start=torch.cuda.Event(enable_timing=True)
+        #   end=torch.cuda.Event(enable_timing=True)
+        #   start.record()
           ray_colors= u_ox.launch_pipeline_test(pipeline, sbt, gas,bb_min,bb_max,cam,
                                            cp_densities,cp_color_features_rgb,cp_positions,
                                            cp_scales, cp_quaternions,
                                            max_prim_slice=max_prim_slice,
                                             rnd_sample=rnd_sample,supersampling=supersampling,white_background=white_background)
-
+        #   end.record()
+        #   torch.cuda.synchronize()
+        #   mean_time.append(start.elapsed_time(end))
           ray_colors=from_dlpack(ray_colors.toDlpack())
           ray_colors_mean=utilities.reduce_supersampling(cam.image_width,cam.image_height,ray_colors,supersampling)
 
           ray_colors_numpy = ray_colors_mean.detach().cpu().numpy().clip(0,1)
 
           images_list.append(ray_colors_numpy)
-
+    #   print("Mean time",np.mean(mean_time))
+    #   exit(0)
       return images_list
