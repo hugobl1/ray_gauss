@@ -42,8 +42,6 @@ class Camera:
         V *= vlen
 
         ulen = vlen * self.aspect_ratio
-        # print("vlen", vlen, "ulen", ulen)
-        # print("aspect_ratio", self.aspect_ratio)
         U *= ulen
 
         return (U,V,W)

@@ -150,16 +150,14 @@ if __name__ == '__main__':
     np_positions=cp.asnumpy(cp_positions)
     barycenter=np_positions.mean(axis=0)
     state.barycenter=barycenter
-    state.camera.look_at = barycenter
+    # state.camera.look_at = barycenter
     ############################################################################################################
     state.time = 0.0
 
-    # num_frames = 16
-    # animation_time = 1.0
 
     buffer_format = BufferImageFormat.UCHAR4
     output_buffer_type = CudaOutputBufferType.enable_gl_interop()
-    init_camera_state(state)
+    init_camera_state(state,state.barycenter)
 
     # create_context(state)
     state.ctx=u_ox.create_context(log)
