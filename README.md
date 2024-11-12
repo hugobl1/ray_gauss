@@ -151,6 +151,9 @@ In *First Person* mode, you can use the keyboard keys to move the camera in diff
   - `Q`: Move backward
   - `S`: Move left
   - `D`: Move right
+  - `A`: Move down
+  - `E`: Move up  
+  
 
 - **View Control with Right Click**:
   - **Right Click + Move Mouse Up**: Look up
