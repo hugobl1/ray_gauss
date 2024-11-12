@@ -32,6 +32,11 @@ args=parser.parse_args()
 if not((args.ply_path is not None) ^ (args.output is not None and args.iter is not None)):# XOR
     raise ValueError("You must provide either the output folder and the iteration to display or the data path")
 
+if args.ply_path is not None:
+    args.ply_path=os.path.abspath(args.ply_path)
+    if not os.path.exists(args.ply_path):
+        raise ValueError("The path to the rg_ply file is incorrect")
+    
 gui_mode= 0 if args.ply_path is not None else 1
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -124,6 +129,10 @@ if __name__ == '__main__':
                         hit_sphere_idx=hit_sphere_idx,depth_buffer_ptr=state.depth_buffer)
 
     state.gt_image = cp.zeros((width*height,4),dtype=cp.uint8)
+    #Compute barycenter of the positions
+    np_positions=cp.asnumpy(cp_positions)
+    barycenter=np_positions.mean(axis=0)
+    state.barycenter=barycenter
     print("gui_mode:",gui_mode)
     if gui_mode:
         state.path_available_iterations=path_available_iterations
@@ -140,24 +149,34 @@ if __name__ == '__main__':
     
         state.train_cam_infos, state.test_cam_infos = train_cam_infos, test_cam_infos
         state.train_images, state.test_images = train_images, test_images
+        
+        #Camera parammeters initialize to first train camera center
+        first_train_cam_info=train_cam_infos[0]
+        T=first_train_cam_info.T
+        R=first_train_cam_info.R
+        eye = -R@T
+        #Project the barycenter on R[:,2] line passing by camera.eye, supposing there that R[:,2] is still normalized
+        len_look_at=np.dot(state.barycenter-eye, R[:,2])
+        look_at = eye+R[:,2]*len_look_at
+        up = -R[:,1]
+        fov_y = first_train_cam_info.FoVy*180/np.pi
+
+        init_camera_state(state,eye=eye,look_at=look_at,up=up,fov_y=fov_y)
+    else:
+        ############################################################################################################
+        #By default the camera is looking at the barycenter of the positions
+        init_camera_state(state,look_at=state.barycenter)
+        ############################################################################################################
+
     state.pointcloud=pointcloud
-    
     state.gui_mode=gui_mode
 
-    ############################################################################################################
-    #Change the point where the camera is looking at
-    #Compute barycenter of the positions
-    np_positions=cp.asnumpy(cp_positions)
-    barycenter=np_positions.mean(axis=0)
-    state.barycenter=barycenter
-    # state.camera.look_at = barycenter
-    ############################################################################################################
+
     state.time = 0.0
 
 
     buffer_format = BufferImageFormat.UCHAR4
     output_buffer_type = CudaOutputBufferType.enable_gl_interop()
-    init_camera_state(state,state.barycenter)
 
     # create_context(state)
     state.ctx=u_ox.create_context(log)
@@ -230,8 +249,6 @@ if __name__ == '__main__':
         imgui.render()
         impl.render(imgui.get_draw_data())
         glfw.swap_buffers(window)
-
         state.params.subframe_index = state.params.subframe_index+ 1
-
     impl.shutdown()
     glfw.terminate()

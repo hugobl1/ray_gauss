@@ -9,7 +9,7 @@ class FPCameraControls:
         self.camera = Camera()
         self.move_speed = 2.0
         self.strafe_speed = 2.0
-        self.vertical_speed = 0.1
+        self.vertical_speed = 0.5
         self.mouse_sensitivity = 0.1
         self.yaw = 0.0
         self.pitch = 0.0
@@ -46,14 +46,11 @@ class FPCameraControls:
         # self.perform_tracking = True
     
         self.forward = direction / np.linalg.norm(direction)
-
-        # Définir le vecteur up (supposons que up est toujours [0, 0, 1] initialement)
+        # Définir le vecteur up
         self.up = self.camera.up / np.linalg.norm(self.camera.up)
-
         # Calculer le vecteur right
         self.right = np.cross(self.forward, self.up)
         self.right /= np.linalg.norm(self.right)
-
         self.perform_tracking = True
 
     def handle_mouse_motion(self, x, y):
@@ -141,7 +138,7 @@ class FPCameraControls:
     #     self.yaw -= self.dx * self.mouse_sensitivity # inverted the sign here
     #     self.pitch -= self.dy * self.mouse_sensitivity 
 
-    #     print("self.camera.up",self.camera.up)
+    #     # print("self.camera.up",self.camera.up)
     #     # Limit pitch to prevent flipping
     #     self.pitch = np.clip(self.pitch, -89.0, 89.0)
 
@@ -180,6 +177,14 @@ class FPCameraControls:
         if glfw.KEY_D in self.keys_pressed:
             self.camera.eye += self.strafe_speed * np.cross(direction, self.camera.up)*dt
             self.camera.look_at += self.strafe_speed * np.cross(direction, self.camera.up)*dt
+            update = True
+        if glfw.KEY_Q in self.keys_pressed:#Move down in z axis
+            self.camera.eye -= self.vertical_speed * self.camera.up*dt
+            self.camera.look_at -= self.vertical_speed * self.camera.up*dt
+            update = True
+        if glfw.KEY_E in self.keys_pressed: #Move up in z axis
+            self.camera.eye += self.vertical_speed * self.camera.up*dt
+            self.camera.look_at += self.vertical_speed * self.camera.up*dt
             update = True
         return update
     

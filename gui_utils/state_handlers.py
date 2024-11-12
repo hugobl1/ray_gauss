@@ -375,14 +375,20 @@ def display_subframe(output_buffer, gl_display, window):
                         output_buffer.get_pbo() )
 
 
-def init_camera_state(state,barycenter=None):
+def init_camera_state(state,eye=None,look_at=None,up=None,fov_y=None):
     camera = state.camera
     camera.eye = (-2.895067, -0.48323154, 2.7631636)
+    if eye is not None:
+        camera.eye = eye
     camera.look_at = (0, 0, 0)
-    if barycenter is not None:
-        camera.look_at = barycenter
+    if look_at is not None:
+        camera.look_at = look_at
     camera.up = (0, 0, 1)
+    if up is not None:
+        camera.up = up
     camera.fov_y = 35
+    if fov_y is not None:
+        camera.fov_y = fov_y
     state.camera_changed = True
 
     trackball = state.trackball

@@ -4,7 +4,7 @@ import OpenGL.GL as gl
 
 import imgui
 from imgui.integrations.glfw import GlfwRenderer
-
+from .vecmath import normalize
 import numpy as np
 
 
@@ -246,7 +246,7 @@ display     : {display_ms:8.1f} ms
     sub_menu_camera_expanded = True
     sub_menu_camera_expanded, _ = imgui.collapsing_header("Choix de la caméra", sub_menu_camera_expanded)
     if sub_menu_camera_expanded:
-        imgui.begin_child("Camera choice", 280, 50, border=True)
+        imgui.begin_child("Camera choice", 280, 60, border=True)
         #Radio button to choose the camera
         if imgui.radio_button("Trackball", state.camera_mode == 0):
             state.camera_mode = 0
@@ -266,8 +266,11 @@ display     : {display_ms:8.1f} ms
         if imgui.radio_button("First person", state.camera_mode == 1):
             state.camera_mode = 1
             state.which_item = 9
+        #Add a button with "Reset Global Up direction" to reset the global up direction
+        if imgui.button("Reset global up direction"):
+            _,v,_=state.camera.uvw_frame()
+            state.fp_controls.camera.up = normalize(+v)
         state.is_window_focused = imgui.is_window_focused() or state.is_window_focused
-        # print("Camera mode: ", state.camera_mode)
         imgui.end_child()
     ##############################################################################
     
