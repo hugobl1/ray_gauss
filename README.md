@@ -11,7 +11,7 @@
   </p>
   <h2 align="center">WACV 2025</h2>
 
-  <h3 align="center"><a href="https://drive.google.com/file/d/1qbJjbScbUJOKoYc0iLhk1NE7rtcHp8lH/view?usp=sharing">Paper</a> | <a href="https://arxiv.org/pdf/2408.03356">arXiv</a> | <a href="https://raygauss.github.io/">Project Page</a>  
+  <h3 align="center"><a href="https://drive.google.com/file/d/1qbJjbScbUJOKoYc0iLhk1NE7rtcHp8lH/view?usp=sharing">Paper</a> | <a href="https://arxiv.org/pdf/2408.03356">arXiv</a> | <a href="https://raygauss.github.io/">Project Page</a>  | <a href="https://drive.google.com/file/d/1E0_Tg2QeMx2kyohPhfRtfV656oQFQ2Kv/view?usp=sharing">Blender Models</a>
   <div align="center"></div>
 </p>
 
@@ -35,19 +35,19 @@ We present an enhanced differentiable ray-casting algorithm for rendering Gaussi
 
 The following software components are required to ensure compatibility and optimal performance:
 
-- **Ubuntu**
+- **Ubuntu or Windows**
 - **NVIDIA Drivers**: Install NVIDIA drivers, version **525.60.13 or later**, to ensure compatibility with **CUDA Toolkit 12.4**, required in Conda environment setup.
 - **NVIDIA OptiX 7.6**: NVIDIA’s OptiX ray tracing engine, version 7.6, is required for graphics rendering and computational tasks. You can download it from the [NVIDIA OptiX Legacy Downloads page](https://developer.nvidia.com/designworks/optix/downloads/legacy).
 - **Anaconda**: Install [Anaconda](https://anaconda.com/download), a distribution that includes Conda, for managing packages and environments efficiently.
 
-## Installation
+## Installation on Ubuntu
 
 Follow the steps below to set up the project:
 
    ```bash
   #Python-Optix requirements
   export OPTIX_PATH=/path/to/optix
-  #For example if the repo is in your home folder: export OPTIX_PATH=~/NVIDIA-OptiX-SDK-7.6.0-linux64-x86_64/
+  #For example, if the repo is in your home folder: export OPTIX_PATH=~/NVIDIA-OptiX-SDK-7.6.0-linux64-x86_64/
   export OPTIX_EMBED_HEADERS=1 # embed the optix headers into the package
 
   
@@ -57,10 +57,48 @@ Follow the steps below to set up the project:
   conda activate ray_gauss
   ```
 
+## Installation on Windows
+
+Follow the steps below to set up the project:
+
+   ```bash
+  git clone https://github.com/hugobl1/ray_gauss.git
+  cd ray_gauss
+  ```
+
+Change the CUDA version in the `environment.yml` file according to your installed CUDA version in Windows. For example, if you have CUDA 11.8:
+  - cuda-toolkit=12.4 -> cuda-toolkit=11.8
+  - pytorch-cuda=12.4 -> pytorch-cuda=11.8
+
+Comment the line python-optix in the `environment.yml` file (python-optix needs to be installed from source on Windows)
+   - python-optix  ->  #python-optix
+
+Now, you can create the ray_gauss conda env:
+ ```bash
+conda env create --file environment.yml
+conda activate ray_gauss
+```
+
+Install python-optix from source:
+ ```bash
+git clone https://github.com/mortacious/python-optix
+cd python-optix
+set OPTIX_PATH=\path\to\optix
+#For example, the repo is by default on C disk: set OPTIX_PATH=C:\ProgramData\NVIDIA Corporation\OptiX SDK 7.6.0
+set OPTIX_EMBED_HEADERS=1 # embed the optix headers into the package
+pip install .
+```
+
+You can now train your own model:
+ ```bash
+cd..
+python main_train.py
+```
+
 
 # Dataset
 ### NeRF Synthetic Dataset
-Please download and unzip [nerf_synthetic.zip](https://drive.google.com/file/d/1a3l9OL2lRA3z490QFNoDdZuUxTWrbdtD/view?usp=sharing). The folder contains initialization point clouds and the NeRF-Synthetic dataset.
+Please download and unzip [nerf_synthetic.zip](https://drive.google.com/file/d/1a3l9OL2lRA3z490QFNoDdZuUxTWrbdtD/view?usp=sharing) in the `dataset` folder. The folder contains initialization point clouds and the NeRF-Synthetic dataset.
 
 #### Trained Models
 
@@ -186,7 +224,7 @@ To use a dataset created with Reality Capture, refer to the [Reality Capture Ins
 
 # Acknowledgements
 
-We thank the authors of [Python-Optix](https://github.com/mortacious/python-optix), upon which our project is based, as well as the authors of [NeRF](https://github.com/bmild/nerf) and [Mip-NeRF 360](https://github.com/google-research/multinerf) for providing their datasets. Finally, we would like to acknowledge the authors of [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting), as our project's dataloader is inspired by the one used in 3DGS.
+We thank the authors of [Python-Optix](https://github.com/mortacious/python-optix), upon which our project is based, as well as the authors of [NeRF](https://github.com/bmild/nerf) and [Mip-NeRF 360](https://github.com/google-research/multinerf) for providing their datasets. Finally, we would like to acknowledge the authors of [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting), as our project's dataloader is inspired by the one used in 3DGS; and [Mip-Splatting](https://github.com/autonomousvision/mip-splatting) for the calculation of the minimum sizes of the Gaussians as a function of the cameras.
 
 
 
