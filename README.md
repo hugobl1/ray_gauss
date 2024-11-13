@@ -66,7 +66,9 @@ Follow the steps below to set up the project:
   cd ray_gauss
   ```
 
-Change the CUDA version in the `environment.yml` file according to your installed CUDA version in Windows. For example, if you have CUDA 11.8:
+You need to install CUDA Toolkit on Windows, if possible **version 12.4**: https://developer.nvidia.com/cuda-12-4-1-download-archive?target_os=Windows&target_arch=x86_64
+
+If you already have a CUDA version on your Windows, you need to change the `environment.yml` file to match the CUDA version you installed in Windows. For example, if you have CUDA 11.8:
   - cuda-toolkit=12.4 -> cuda-toolkit=11.8
   - pytorch-cuda=12.4 -> pytorch-cuda=11.8
 
