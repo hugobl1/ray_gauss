@@ -36,7 +36,7 @@ We present an enhanced differentiable ray-casting algorithm for rendering Gaussi
 The following software components are required to ensure compatibility and optimal performance:
 
 - **Ubuntu or Windows**
-- **NVIDIA Drivers**: Install NVIDIA drivers, version **525.60.13 or later**, to ensure compatibility with **CUDA Toolkit 12.4**, required in Conda environment setup.
+- **NVIDIA Drivers**: Install NVIDIA drivers, version **525.60.13 or later**, to ensure compatibility with **CUDA Toolkit 12.4**, included in Conda environment setup.
 - **NVIDIA OptiX 7.6**: NVIDIA’s OptiX ray tracing engine, version 7.6, is required for graphics rendering and computational tasks. You can download it from the [NVIDIA OptiX Legacy Downloads page](https://developer.nvidia.com/designworks/optix/downloads/legacy).
 - **Anaconda**: Install [Anaconda](https://anaconda.com/download), a distribution that includes Conda, for managing packages and environments efficiently.
 
