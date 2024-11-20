@@ -1,7 +1,7 @@
 scene:
   source_path: "./dataset/mipnerf360/360_v2/bicycle"  #"./mipnerf360/360_v2/bicycle" # "./nerf_synthetic/ship" # "tandt_db/db/playroom" #"./nerf_synthetic/hotdog" #"./nerf_synthetic/two_ellipsis/" # "tandt_db/tandt/train" # 
   images: "images"
-  data_device: "cuda"
+  data_device: "cpu"
   white_background: false
   eval: true
 
@@ -51,6 +51,7 @@ training:
   supersampling_y: 1
 
   normalize_quaternion: true
+  normalize_lobe_axis: false
   optimization:
     density:
       scheduler: true

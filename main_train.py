@@ -1,3 +1,9 @@
+import logging
+logging.basicConfig(
+    filename='log_output.txt',  # Chemin du fichier
+    level=logging.INFO,        # Niveau minimal de journalisation
+    format='%(asctime)s - %(levelname)s - %(message)s'  # Format des messages
+)
 import argparse,os
 from datetime import datetime
 from omegaconf import OmegaConf

@@ -513,53 +513,53 @@ class PointCloud:
       self.num_accum=self.num_accum[mask]
       self.num_accum_gnv=self.num_accum_gnv[mask]
 
+  @torch.no_grad()
   def unlock_spherical_harmonics(self,n_sh):
     """
       Fix n_sh spherical harmonics coefficients to the pointcloud
     """
     print("Unlock spherical harmonics: ",n_sh)
-    with torch.no_grad():
-      self.harmonic_number=n_sh
-      actual_n_sh=self.spherical_harmonics.shape[2]
-      #dict_tensor=self.optim_managers._cat_tensors({"sh":1e-6*torch.randn((len(self.positions),3,n_sh-actual_n_sh-1),dtype=torch.float32,device=device)},dim=2)
-      dict_tensor=self.optim_managers._cat_tensors({"sh":0.0*torch.randn((len(self.positions),3,n_sh-actual_n_sh-1),dtype=torch.float32,device=device)},dim=2)
-      self.spherical_harmonics=dict_tensor["sh"]
+    self.harmonic_number=n_sh
+    actual_n_sh=self.spherical_harmonics.shape[2]
+    #dict_tensor=self.optim_managers._cat_tensors({"sh":1e-6*torch.randn((len(self.positions),3,n_sh-actual_n_sh-1),dtype=torch.float32,device=device)},dim=2)
+    dict_tensor=self.optim_managers._cat_tensors({"sh":0.0*torch.randn((len(self.positions),3,n_sh-actual_n_sh-1),dtype=torch.float32,device=device)},dim=2)
+    self.spherical_harmonics=dict_tensor["sh"]
 
+  @torch.no_grad()
   def unlock_spherical_gaussians(self,n_sph_gauss):
     """
       Fix n_sph_gauss spherical gaussians to the pointcloud
     """
     print("Unlock spherical gaussians: ",n_sph_gauss)
-    with torch.no_grad():
-      dict_tensor=self.optim_managers._cat_tensors({"sph_gauss_features":torch.zeros((len(self.positions),3,n_sph_gauss),dtype=torch.float32,device=device)},dim=2)
-      self.sph_gauss_features=dict_tensor["sph_gauss_features"]
-      dict_tensor=self.optim_managers._cat_tensors({"bandwidth_sharpness":torch.zeros((len(self.positions),n_sph_gauss),dtype=torch.float32,device=device)},dim=1)
-      self.bandwidth_sharpness=dict_tensor["bandwidth_sharpness"]
-      dict_tensor=self.optim_managers._cat_tensors({"lobe_axis":torch.randn((len(self.positions),n_sph_gauss,3),dtype=torch.float32,device=device)},dim=1)
-      self.lobe_axis=dict_tensor["lobe_axis"]
-      self.num_sph_gauss+=n_sph_gauss
+    dict_tensor=self.optim_managers._cat_tensors({"sph_gauss_features":torch.zeros((len(self.positions),3,n_sph_gauss),dtype=torch.float32,device=device)},dim=2)
+    self.sph_gauss_features=dict_tensor["sph_gauss_features"]
+    dict_tensor=self.optim_managers._cat_tensors({"bandwidth_sharpness":torch.zeros((len(self.positions),n_sph_gauss),dtype=torch.float32,device=device)},dim=1)
+    self.bandwidth_sharpness=dict_tensor["bandwidth_sharpness"]
+    dict_tensor=self.optim_managers._cat_tensors({"lobe_axis":torch.randn((len(self.positions),n_sph_gauss,3),dtype=torch.float32,device=device)},dim=1)
+    self.lobe_axis=dict_tensor["lobe_axis"]
+    self.num_sph_gauss+=n_sph_gauss
 
+  @torch.no_grad()
   def clamp_density(self):
-    with torch.no_grad():
-      self.densities[:] = torch.clamp(self.densities, 0)
+    self.densities[:] = torch.clamp(self.densities, 0)
   
+  @torch.no_grad()
   def select_inside_mask(self,mask):
-    with torch.no_grad():
-      xyz=self.positions[mask].contiguous()
-      color_features=self.get_color_features().contiguous()
-      color_features=color_features[mask].contiguous()
-      densities=self.densities[mask].contiguous()
-      scales=self.get_scale()
-      scales=scales[mask].contiguous()
-      quaternions=self.get_normalized_quaternion()
-      quaternions=quaternions[mask].contiguous()
+    xyz=self.positions[mask].contiguous()
+    color_features=self.get_color_features().contiguous()
+    color_features=color_features[mask].contiguous()
+    densities=self.densities[mask].contiguous()
+    scales=self.get_scale()
+    scales=scales[mask].contiguous()
+    quaternions=self.get_normalized_quaternion()
+    quaternions=quaternions[mask].contiguous()
 
-      sph_gauss_features=self.sph_gauss_features[mask].contiguous()
-      bandwidth_sharpness=self.get_bandwidth_sharpness()
-      bandwidth_sharpness=bandwidth_sharpness[mask].contiguous()
-      lobe_axis=self.get_lobe_axis()
-      lobe_axis=lobe_axis[mask].contiguous()
-      return xyz,color_features,densities,scales,quaternions,sph_gauss_features,bandwidth_sharpness,lobe_axis
+    sph_gauss_features=self.sph_gauss_features[mask].contiguous()
+    bandwidth_sharpness=self.get_bandwidth_sharpness()
+    bandwidth_sharpness=bandwidth_sharpness[mask].contiguous()
+    lobe_axis=self.get_normalized_lobe_axis()
+    lobe_axis=lobe_axis[mask].contiguous()
+    return xyz,color_features,densities,scales,quaternions,sph_gauss_features,bandwidth_sharpness,lobe_axis
 
     
   def subsample(self, percentage_points):
@@ -627,23 +627,23 @@ class PointCloud:
       self.bandwidth_sharpness=torch.cat([self.bandwidth_sharpness,torch.zeros((len(xyz),self.num_sph_gauss),dtype=self.data_type,device=device)],dim=0).requires_grad_(True)
       self.lobe_axis=torch.cat([self.lobe_axis,torch.zeros((len(xyz),self.num_sph_gauss,3),dtype=self.data_type,device=device)],dim=0).requires_grad_(True)
     
+  @torch.no_grad()
   def accumulate_gradient(self,grad):
-    with torch.no_grad():
-      self.xyz_gradient_accum_norm += torch.norm(grad,dim=1)
-      self.num_accum += torch.where(torch.norm(grad,dim=1)>0,1.0,0.0)
+    self.xyz_gradient_accum_norm += torch.norm(grad,dim=1)
+    self.num_accum += torch.where(torch.norm(grad,dim=1)>0,1.0,0.0)
   
+  @torch.no_grad()
   def accumulate_gradient_gaussians_not_visible(self,grad):
-    with torch.no_grad():
-      self.num_accum_gnv += torch.where(torch.norm(grad,dim=1)>0,1.0,0.0)
+    self.num_accum_gnv += torch.where(torch.norm(grad,dim=1)>0,1.0,0.0)
       
+  @torch.no_grad()
   def reset_gradient_accum(self):
-    with torch.no_grad():
-      self.xyz_gradient_accum_norm=torch.zeros(len(self.positions),dtype=self.data_type,device=device)
-      self.num_accum=torch.zeros(len(self.positions),dtype=self.data_type,device=device)
+    self.xyz_gradient_accum_norm=torch.zeros(len(self.positions),dtype=self.data_type,device=device)
+    self.num_accum=torch.zeros(len(self.positions),dtype=self.data_type,device=device)
 
+  @torch.no_grad()
   def reset_gradient_accum_gaussians_not_visible(self):
-    with torch.no_grad():
-      self.num_accum_gnv=torch.zeros(len(self.positions),dtype=self.data_type,device=device)
+    self.num_accum_gnv=torch.zeros(len(self.positions),dtype=self.data_type,device=device)
 
   def delete_gaussians_not_seen(self):
     with torch.no_grad():
@@ -695,33 +695,58 @@ class PointCloud:
     return torch.exp(-self.scales)
   
   def get_normalized_quaternion(self):
-    # print("Maximum quaternion norm: ",torch.max(torch.norm(self.quaternions,dim=1)))
-    # print("Minimum quaternion norm: ",torch.min(torch.norm(self.quaternions,dim=1)))
-    # print("self.quaternions[0]: ",self.quaternions[3])
     return self.quaternions/torch.norm(self.quaternions,dim=1)[:,None]
+  
+  @torch.no_grad()
+  def normalize_quaternion(self):
+    norm=torch.norm(self.quaternions,dim=1)
+    self.quaternions[norm==0]= torch.tensor([1.0,0.0,0.0,0.0],dtype=self.data_type,device=device,requires_grad=True)
+    self.quaternions/=torch.norm(self.quaternions,dim=1)[:,None]
   
   def get_density(self):
     # return torch.nn.functional.softplus(self.densities)
     return self.densities
-
-  def get_lobe_axis(self):
+  
+  def get_normalized_lobe_axis(self):
     #lobe axis is unnormalized vector
     norm=torch.norm(self.lobe_axis,dim=2)
     with torch.no_grad():
       self.lobe_axis[norm==0]= torch.tensor([0.0,0.0,1.0],dtype=self.data_type,device=device,requires_grad=True)
     unit_lobe_axis= self.lobe_axis/torch.norm(self.lobe_axis,dim=2)[:,:,None]
     return unit_lobe_axis
+  
+  @torch.no_grad()
+  def normalize_lobe_axis(self):
+    norm=torch.norm(self.lobe_axis,dim=2)
+    self.lobe_axis[norm==0]= torch.tensor([0.0,0.0,1.0],dtype=self.data_type,device=device,requires_grad=True)
+    self.lobe_axis/=torch.norm(self.lobe_axis,dim=2)[:,:,None]
 
   def get_bandwidth_sharpness(self):
     return torch.nn.functional.softplus(self.bandwidth_sharpness)
   
-  def get_data(self):
-    return (self.positions, self.get_scale(), self.get_normalized_quaternion(), self.get_density(), 
-      self.get_color_features(), self.sph_gauss_features, self.get_bandwidth_sharpness(), self.get_lobe_axis())
+  def get_data(self,normalized_quaternion=True,normalized_lobe_axis=True):
+    if normalized_quaternion:
+      quaternions=self.get_normalized_quaternion()
+    else:
+      quaternions=self.quaternions
+    if normalized_lobe_axis:
+      lobe_axis=self.get_normalized_lobe_axis()
+    else:
+      lobe_axis=self.lobe_axis
+    return (self.positions, self.get_scale(), quaternions, self.get_density(),self.get_color_features(),
+      self.sph_gauss_features, self.get_bandwidth_sharpness(), lobe_axis)
   
-  def get_data_inv_scale(self):
-    return (self.positions, self.get_inv_scale(), self.get_normalized_quaternion(), self.get_density(), self.get_color_features(),
-      self.sph_gauss_features, self.get_bandwidth_sharpness(), self.get_lobe_axis())
+  def get_data_inv_scale(self,normalized_quaternion=True,normalized_lobe_axis=True):
+    if normalized_quaternion:
+      quaternions=self.get_normalized_quaternion()
+    else:
+      quaternions=self.quaternions
+    if normalized_lobe_axis:
+      lobe_axis=self.get_normalized_lobe_axis()
+    else:
+      lobe_axis=self.lobe_axis
+    return (self.positions, self.get_inv_scale(), quaternions, self.get_density(),self.get_color_features(),
+      self.sph_gauss_features, self.get_bandwidth_sharpness(), lobe_axis)
 
   def init_random_debug(self):
     num_pts=2
@@ -1003,7 +1028,7 @@ class PointCloud:
         print("self.lobe_axis")
       exit(0)
 
-
+  @torch.no_grad()
   def densification_postfix(self, new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation,
                             new_sph_gauss_features, new_bandwidth_sharpness, new_lobe_axis,new_filter_3D, quiet=True):
       d = {"xyz": new_xyz,
@@ -1037,6 +1062,7 @@ class PointCloud:
       if not quiet:
         print("Number of points added: ",len(new_xyz))
 
+  @torch.no_grad()
   def densify_and_split(self, grads, grad_threshold, scene_extent, N=2, quiet=True):
       if not quiet:
         print("Densify and split")
@@ -1069,7 +1095,8 @@ class PointCloud:
     
       prune_filter = torch.cat((selected_pts_mask, torch.zeros(N * selected_pts_mask.sum(), device="cuda", dtype=bool)))
       self.prune_points(prune_filter)
-      
+
+  @torch.no_grad()   
   def densify_and_clone(self, grads, grad_threshold, scene_extent, quiet=True):
       if not quiet:
         print("Densify and clone")
@@ -1095,6 +1122,7 @@ class PointCloud:
       self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, 
                                 new_sph_gauss_features, new_bandwidth_sharpness, new_lobe_axis, new_filter_3D, quiet)
 
+  @torch.no_grad()
   def densify_and_prune(self, max_grad, min_density, extent, quiet=True):
     grads = self.xyz_gradient_accum_norm / self.num_accum
     grads[grads.isnan()] = 0.0
