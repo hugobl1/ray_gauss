@@ -235,7 +235,7 @@ To maintain consistency with our method, you should use the `ns-train` command w
 To use your own scenes, ensure your dataset is structured correctly for the COLMAP loaders. The directory must include an `images` folder containing your image files and a `sparse` folder with subdirectories containing `cameras.bin`, `images.bin`, and `points3D.bin` files obtained using COLMAP reconstruction. Note that the camera models used for COLMAP reconstruction must be either `SIMPLE_PINHOLE` or `PINHOLE`. 
 The dataset structure must be as follows:
 
-```bash
+```
 <location>
 |---images
 |   |---<image 0>
