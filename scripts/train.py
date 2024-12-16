@@ -23,6 +23,8 @@ log = logging.getLogger(__name__)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train(config, quiet=True):
+  mempool = cp.get_default_memory_pool()
+
   learnable_point_cloud=point_cloud.PointCloud(data_type=config.pointcloud.data_type,device=device)
   opt_scene=scene.Scene(config=config,pointcloud=learnable_point_cloud,train_resolution_scales=config.scene.train_resolution_scales,test_resolution_scales=config.scene.test_resolution_scales)
 
@@ -141,7 +143,7 @@ def train(config, quiet=True):
     if iter < cfg_train.densify_until_iter and iter>0:
       if iter > cfg_train.densify_from_iter and iter % cfg_train.densification_interval == 0:
         opt_scene.pointcloud.densify_and_prune(cfg_train.densify_grad_threshold, u_ox.SIGMA_THRESHOLD, opt_scene.cameras_extent, quiet=quiet)
-          
+        mempool.free_all_blocks()      
     if cfg_train.unlock_color_features:     
       unlock_freq=cfg_train.unlock_freq
       if (iter>0) and (iter%unlock_freq==0)and iter<=(config.training.limit_degree_tot*unlock_freq):
@@ -185,6 +187,9 @@ def train(config, quiet=True):
     ############################################################################################################
     if (not quiet and iter%1000==0) or (iter==config.training.n_iters-1):
       #Save the model
+      if not quiet:
+        opt_scene.pointcloud.save_model(iter,config.save.models)
+
       if (iter==config.training.n_iters-1):
         end_time=time.time()
         training_time=end_time-start_time
