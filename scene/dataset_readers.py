@@ -132,7 +132,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder,zmin_zmax=No
         cam_infos.append(cam_info)
         # cam_info = CameraInfo(uid=uid, R=R, T=T, FoVy=FoVy, FoVx=FoVx, image=image,
         #                       image_path=image_path, image_name=image_name, width=width, height=height)
-    sys.stdout.write('\n')
+    #sys.stdout.write('\n')
     return cam_infos
 
 def fetchPly(path):
