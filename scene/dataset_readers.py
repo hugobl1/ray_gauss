@@ -234,7 +234,7 @@ def readColmapSceneInfo(path, images, eval, config,llffhold=8):
                         fx,fy=f*ratio_x,f*ratio_y
                         cx,cy=cx*ratio_x,cy*ratio_y
                     elif scaled_intrinsics[key].model=="PINHOLE":
-                        fx,fy,cx,cy=scaled_intrinsics[key].params
+                        fx,fy,cx,cy=scaled_intrinsics[key].params[0:4]
                         fx,fy,cx,cy=fx*ratio_x,fy*ratio_y,cx*ratio_x,cy*ratio_y
                     scaled_params=np.array([fx,fy,cx,cy])
                     scaled_intrinsics[key]=scaled_intrinsics[key]._replace(params=scaled_params)
