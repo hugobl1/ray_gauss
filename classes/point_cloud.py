@@ -513,6 +513,7 @@ class PointCloud:
       self.xyz_gradient_accum_norm=self.xyz_gradient_accum_norm[mask]
       self.num_accum=self.num_accum[mask]
       self.num_accum_gnv=self.num_accum_gnv[mask]
+      self.filter_3D=self.filter_3D[mask]
 
   @torch.no_grad()
   def unlock_spherical_harmonics(self,n_sh):
