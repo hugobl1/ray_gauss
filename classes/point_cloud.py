@@ -236,14 +236,15 @@ class PointCloud:
       name_shr="sh"+str(n_sh)+"r"
       name_shg="sh"+str(n_sh)+"g"
       name_shb="sh"+str(n_sh)+"b"
-    name_sgr,name_sgg,name_sgb="sg"+str(n_sh)+"r","sg"+str(n_sh)+"g","sg"+str(n_sh)+"b"
+    
     n_sg=0
+    name_sgr,name_sgg,name_sgb="sg"+str(n_sg)+"r","sg"+str(n_sg)+"g","sg"+str(n_sg)+"b"
     while name_sgr in fields and name_sgg in fields and name_sgb in fields:
       sh_or_sg=True
       n_sg+=1
-      name_sgr="sg"+str(n_sh)+"r"
-      name_sgg="sg"+str(n_sh)+"g"
-      name_sgb="sg"+str(n_sh)+"b"
+      name_sgr="sg"+str(n_sg)+"r"
+      name_sgg="sg"+str(n_sg)+"g"
+      name_sgb="sg"+str(n_sg)+"b"
     if not(sh_or_sg):
       print("No color field in the pointcloud")
       sys.exit(0)
