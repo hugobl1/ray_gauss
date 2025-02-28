@@ -82,6 +82,11 @@ class PointCloud:
     elif type=="gaussian_splatting":
         cfg=config.gaussian_splatting
         self.init_from_gaussian_splatting(config)
+    elif type=="uniform":
+        cfg=config.ply
+        # self.load_from_ply(cfg.ply_path,cfg.sh_nb,cfg.sg_nb,cfg.default_density, True)
+        self.init_uniform(cfg.sh_nb,cfg.sg_nb,config.uniform.n_rnd_pts)
+        
     # elif type=="random":
     #     cfg=config.random
     #     self.init_random(cfg.num_pts,cfg.sh_nb,cfg.sg_nb,
@@ -103,6 +108,56 @@ class PointCloud:
   
   def init_from_gaussian_splatting(self,init_params):
     self.load_from_gaussian_splatting(name=init_params.gaussian_splatting.path,num_harmonics=init_params.harmonic_number)
+  
+  def init_uniform(self, sh_nb, sg_nb, num_pts: int = 100_000):
+    """for a comparative baseline, init randomly
+
+    Args:
+        num_pts (int): _description_
+    """
+    self.harmonic_number = sh_nb
+    self.num_sph_gauss   = sg_nb
+    
+    xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3
+    # shs = np.random.random((num_pts, 3)) / 255.0
+    
+    dist2 = torch.clamp_min(distCUDA2(torch.from_numpy(np.asarray(xyz)).float().cuda()), 0.0000001)
+    
+    self.positions = torch.from_numpy(xyz).to(dtype=self.data_type, device=device).contiguous().requires_grad_(True)
+    # self.spherical_harmonics=torch.load(folder_tensors+'/'+name_spherical_harmonics+'.pt')#[:,:,:self.harmonic_number]
+    
+    # self.rgb=color_features[:,:,0]
+    # self.spherical_harmonics=color_features[:,:,1:]
+    colors = np.zeros((num_pts, 3))
+    
+    with torch.no_grad():
+      self.rgb=torch.tensor(colors*2*np.sqrt(np.pi),device=device,dtype=self.data_type).contiguous().requires_grad_(True)
+    self.rgb.requires_grad_(True)
+    
+    self.spherical_harmonics = torch.zeros((num_pts,3,self.harmonic_number-1),device=device,dtype=self.data_type, requires_grad=True).contiguous()
+    
+    # 10 is default density
+    self.densities = torch.full( (num_pts,), 10, dtype=self.data_type, device=device, requires_grad=True ).contiguous()
+    with torch.no_grad():
+      self.scales = torch.log( torch.sqrt(dist2)[..., None].repeat(1, 3) )
+    self.scales.contiguous().requires_grad_(True)
+    
+    self.quaternions = torch.zeros( (num_pts, 4), dtype=self.data_type, device=device, requires_grad=True )
+    with torch.no_grad():
+      self.quaternions[:,0] = 1.0
+    self.quaternions.contiguous().requires_grad_(True)
+
+    self.sph_gauss_features=torch.zeros((num_pts,3,self.num_sph_gauss),dtype=self.data_type,device=device,requires_grad=True)
+    self.bandwidth_sharpness=torch.zeros((num_pts,self.num_sph_gauss),dtype=self.data_type,device=device,requires_grad=True)
+    self.lobe_axis=torch.zeros((num_pts,self.num_sph_gauss,3),dtype=self.data_type,device=device,requires_grad=True)
+    
+    self.xyz_gradient_accum_norm = torch.zeros(len(self.positions),dtype=self.data_type,device=device)
+    self.num_accum = torch.zeros(len(self.positions),dtype=self.data_type,device=device)
+    self.num_accum_gnv = torch.zeros(len(self.positions),dtype=self.data_type,device=device)
+    
+    filter_3D = np.zeros(num_pts)[..., np.newaxis] + 0.0001
+    self.filter_3D = torch.log(torch.from_numpy(filter_3D).type(torch.float32).to(device))
+    
   
   def init_from_pt(self,iter,model_folder):
     """ Initialize the attributes of the pointcloud from a pt file
@@ -294,7 +349,7 @@ class PointCloud:
     filter_3D = np.zeros(points.shape[0])[..., np.newaxis] + 0.0001
     self.filter_3D = torch.log(torch.from_numpy(filter_3D).type(torch.float32).to(device))
 
-  def load_from_ply(self,name,sh_nb,sg_nb,default_density): #default_spherical_harmonics=np.ones((3,6))*0.4*np.sqrt(np.pi),
+  def load_from_ply(self,name,sh_nb,sg_nb,default_density, baseline=False): #default_spherical_harmonics=np.ones((3,6))*0.4*np.sqrt(np.pi),
     """Load a pointcloud from a ply file."""
     print("Loading pointcloud from ply file:",name)
     self.harmonic_number=sh_nb
@@ -322,7 +377,7 @@ class PointCloud:
 
     self.densities=torch.tensor(densities,requires_grad=True,device=device,dtype=self.data_type)
     # Check if the pointcloud has a color field
-    if 'red' in fields and 'green' in fields and 'blue' in fields: #Suppose only rgb
+    if 'red' in fields and 'green' in fields and 'blue' in fields and not baseline: #Suppose only rgb
       print("RGB field found")
       colors = np.vstack((pointcloud['red'], pointcloud['green'], pointcloud['blue'])).T/255-0.5
       # Convert to  spherical harmonics
@@ -334,6 +389,19 @@ class PointCloud:
       self.bandwidth_sharpness=torch.zeros((size_pointcloud,self.num_sph_gauss),dtype=self.data_type,device=device,requires_grad=True)
       self.lobe_axis=torch.zeros((size_pointcloud,self.num_sph_gauss,3),dtype=self.data_type,device=device,requires_grad=True)
     else:
+      
+      colors = np.zeros((size_pointcloud, 3))
+    
+      with torch.no_grad():
+        self.rgb=torch.tensor(colors*2*np.sqrt(np.pi),device=device,dtype=self.data_type).contiguous().requires_grad_(True)
+      self.rgb.requires_grad_(True)
+      
+      self.spherical_harmonics = torch.zeros((size_pointcloud,3,self.harmonic_number-1),device=device,dtype=self.data_type, requires_grad=True).contiguous()
+
+      self.sph_gauss_features=torch.zeros((size_pointcloud,3,self.num_sph_gauss),dtype=self.data_type,device=device,requires_grad=True)
+      self.bandwidth_sharpness=torch.zeros((size_pointcloud,self.num_sph_gauss),dtype=self.data_type,device=device,requires_grad=True)
+      self.lobe_axis=torch.zeros((size_pointcloud,self.num_sph_gauss,3),dtype=self.data_type,device=device,requires_grad=True)
+    
       #Check if the pointcloud has sh0r,sh0g,sh0b,...,shnr,shng,shnb and spherical gaussian features
       # colors=np.zeros((size_pointcloud,3))
       # spherical_harmonics = np.zeros((size_pointcloud,3,self.harmonic_number-1))
@@ -363,9 +431,9 @@ class PointCloud:
       #     lobe_axis[:,i,:]=np.vstack((pointcloud[name_lx], pointcloud[name_ly], pointcloud[name_lz])).T
       #     bandwidth_sharpness[:,i]=pointcloud[name_bs]
       # if not(sh_or_sg):
-      print("No color field in the pointcloud")
-      sys.exit(0)
-    if 'sx' in fields and 'sy' in fields and 'sz' in fields:
+      # print("No color field in the pointcloud")
+      # sys.exit(0)
+    if 'sx' in fields and 'sy' in fields and 'sz' in fields and not baseline:
       print("Scale field found")
       scales=np.vstack((pointcloud['sx'], pointcloud['sy'], pointcloud['sz'])).T
       self.scales=torch.tensor(scales,device=device,dtype=self.data_type).contiguous().requires_grad_(True)
@@ -375,7 +443,7 @@ class PointCloud:
       dist2 = torch.clamp_min(distCUDA2(torch.from_numpy(points).float().cuda()), 0.0000001)
       self.scales = torch.log(torch.sqrt(dist2))[...,None].repeat(1, 3)
       self.scales.contiguous().requires_grad_(True)
-    if 'qx' in fields and 'qy' in fields and 'qz' in fields and 'qw' in fields:
+    if 'qx' in fields and 'qy' in fields and 'qz' in fields and 'qw' in fields and not baseline:
       print("Rotation field found")
       quaternions = np.vstack((pointcloud['qx'], pointcloud['qy'], pointcloud['qz'], pointcloud['qw'])).T
       self.quaternions=torch.tensor(quaternions,device=device,dtype=self.data_type).contiguous().requires_grad_(True)

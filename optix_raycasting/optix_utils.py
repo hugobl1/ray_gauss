@@ -57,6 +57,7 @@ def compute_ellipsoids_bbox(centers,scales,L1,L2,L3,densities):
     delta=cp.sqrt(delta)
 
     out = cp.empty((centers.shape[0], 6), dtype='f4')
+    
     scales_L1 = cp.linalg.norm(delta[:,None]*scales * L1, axis=1)
     scales_L2 = cp.linalg.norm(delta[:,None]*scales * L2, axis=1)
     scales_L3 = cp.linalg.norm(delta[:,None]*scales * L3, axis=1)
@@ -131,30 +132,35 @@ def launch_pipeline_forward(pipeline : ox.Pipeline, sbt, gas,bbox_min,bbox_max,c
                     hit_prim_idx):
     ray_size=(camera.image_height*camera.image_width*supersampling[0]*supersampling[1],)
     params_tmp = [
-        ('u4', 'iteration'),
-        ('u4', 'jitter'),
-        ('u4', 'rnd_sample'),
-        ( 'u4', 'max_prim_slice'),
-        ( '3f4', 'bbox_min'),
-        ( '3f4', 'bbox_max'),
-        ('u4', 'image_width'),
-        ('u4', 'image_height'),
+        ('u4',  'iteration'),
+        ('u4',  'jitter'),
+        ('u4',  'rnd_sample'),
+        ('u4',  'max_prim_slice'),
+        ('3f4', 'bbox_min'),
+        ('3f4', 'bbox_max'),
+        ('u4',  'image_width'),
+        ('u4',  'image_height'),
         ('3f4', 'cam_eye'),
         ('3f4', 'cam_u'),
         ('3f4', 'cam_v'),
         ('3f4', 'cam_w'),
-        ('f4', 'cam_tan_half_fovx'),
-        ('f4', 'cam_tan_half_fovy'),
-        ( 'u8', 'densities'),
-        ( 'u8', 'color_features'),
-        ( 'u8', 'positions'),
-        ( 'u8', 'scales'),
-        ( 'u8', 'quaternions'),
-        ( 'u8', 'hit_prim_idx'),
-        ( 'u8', 'ray_colors'),
-        ( 'u8', 'handle'),
-        ( 'u8', 'max_gaussians_exceeded'),
-        ( 'u4', 'white_background')
+        ('f4',  'cam_tan_half_fovx'),
+        ('f4',  'cam_tan_half_fovy'),
+        ('u8',  'densities'),
+        ('u8',  'color_features'),
+        ('u8',  'positions'),
+        ('u8',  'scales'),
+        ('u8',  'quaternions'),
+        ('u8',  'hit_prim_idx'),
+        ('u8',  'ray_colors'),
+        ('u8',  'handle'),
+        ('u8',  'max_gaussians_exceeded'),
+        ('u4',  'white_background'),
+        # BASELINE
+        ('u8',  'ray_bboxes'),
+        ('u8',  'ray_normals'),
+        ('u8',  'ray_densities'),
+        ('u8',  'ray_depths'),
     ]
 
     params = ox.LaunchParamsRecord(names=[p[1] for p in params_tmp],
@@ -186,7 +192,24 @@ def launch_pipeline_forward(pipeline : ox.Pipeline, sbt, gas,bbox_min,bbox_max,c
 
     cp_ray_colors=cp.zeros((ray_size[0],3), dtype=cp.float32)
     params['ray_colors']=cp_ray_colors.data.ptr
-
+    
+    # ---------------------------------------------------------------------------------
+    # BASELINE
+    # ---------------------------------------------------------------------------------
+    cp_ray_bbox             = cp.zeros( (ray_size[0],3), dtype=cp.float32 )
+    params['ray_bboxes']    = cp_ray_bbox.data.ptr
+    
+    cp_ray_normals          = cp.zeros( (ray_size[0],3), dtype=cp.float32 )
+    params['ray_normals']    = cp_ray_normals.data.ptr
+    
+    cp_ray_density          = cp.zeros( (ray_size[0],1), dtype=cp.float32 )
+    params['ray_densities'] = cp_ray_density.data.ptr
+    
+    cp_ray_depth            = cp.zeros( (ray_size[0],1), dtype=cp.float32 )
+    params['ray_depths']    = cp_ray_depth.data.ptr
+    
+    # ---------------------------------------------------------------------------------    
+    
     params['handle'] = gas.handle
 
     cp_max_gaussians_exceed = cp.zeros((1), dtype=cp.int32)
@@ -206,7 +229,7 @@ def launch_pipeline_forward(pipeline : ox.Pipeline, sbt, gas,bbox_min,bbox_max,c
         if (iteration%1000 == 0):
             print(" ############ Number slabs with max gaussians exceeded : ", cp_max_gaussians_exceed[0])
 
-    return cp_ray_colors
+    return cp_ray_colors, cp_ray_bbox, cp_ray_normals, cp_ray_density, cp_ray_depth
 
 ##################################################################
 

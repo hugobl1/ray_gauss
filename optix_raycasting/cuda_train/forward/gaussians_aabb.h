@@ -51,6 +51,12 @@ struct Params
     int* max_gaussians_exceeded;
     
     unsigned int white_background;
+
+    // BASELINE
+    float3* __restrict__ ray_bboxes;
+    float3* __restrict__ ray_normals;
+    float*  __restrict__ ray_densities;
+    float*  __restrict__ ray_depths;
 };
 
 

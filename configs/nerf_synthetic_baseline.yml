@@ -1,0 +1,128 @@
+scene:
+  source_path: "./dataset/nerf_synthetic/ficus"  #"./mipnerf360/360_v2/bicycle" # "./nerf_synthetic/ship" # "tandt_db/db/playroom" #"./nerf_synthetic/hotdog" #"./nerf_synthetic/two_ellipsis/" # "tandt_db/tandt/train" # 
+  images: "images"
+  data_device: "cuda"
+  white_background: true
+  eval: true
+
+  load_allres: True
+  resolution: -1
+  train_resolution_scales: [1.0] #Be careful if load_allres==false only one is loaded
+  test_resolution_scales: [1.0]
+
+pointcloud:
+  data_type: "float32"
+  init_method: "uniform"
+  pt: # if init_method is pt
+    model_folder: "./output/2024-10-25_13-28-07/saved_tensors"
+    iter: 29999
+  pth:
+    model_folder: "./output/2024-10-25_13-28-07/model"
+    iter: 30000
+  rg_ply:
+    path: "test"
+  ply: # if init_method is ply
+    ply_name: "fused_light.ply"
+    sh_nb: 1 # number of sh fields to use
+    sg_nb: 0 # number of sg fields to use
+    default_density: 10.0
+    n_rnd_pts: 1000 #if path doesn't exist then generate random pointcloud for Blender Dataset
+  uniform:
+    n_rnd_pts: 100000
+
+training:
+  checkpoint: 0
+  checkpoint_folder: "output/2024-07-24_21-22-51/model"
+  max_prim_slice: 1024
+  n_iters: 30000
+
+  unlock_color_features: true
+  limit_degree_tot: 3
+  limit_degree_sh : 2
+  unlock_freq: 1000
+
+  densify_until_iter: 15000
+  densify_from_iter: 500
+  densification_interval: 300
+  densify_grad_threshold: 0.00004
+
+  jitter: 0
+  rnd_sample: 0
+  supersampling_x: 1
+  supersampling_y: 1
+
+  normalize_quaternion: true
+  optimization:
+    density:
+      scheduler: true
+      init_lr: 0.5
+      final_lr: 0.03
+      decay_step: 30000
+      delay_step: 0
+      donotuse_steps: 0
+    rgb:
+      scheduler: false
+      init_lr: 0.001
+      final_lr: 0.001
+      decay_step: 0
+      delay_step: 0
+      donotuse_steps: 0
+    sh:
+      scheduler: false
+      init_lr: 0.00026
+      final_lr: 0.00026
+      decay_step: 0
+      delay_step: 0
+      donotuse_steps: 0
+    position:
+      scheduler: true
+      init_lr:  0.000017
+      final_lr: 0.000001
+      decay_step: 30000
+      delay_step: 0
+      donotuse_steps: 0
+    scale:
+      scheduler: false
+      init_lr: 0.0115
+      final_lr: 0.0115
+      decay_step: 0
+      delay_step: 0
+      donotuse_steps: 0
+    quaternion:
+      scheduler: false
+      init_lr: 0.00022
+      final_lr: 0.00022
+      decay_step: 0
+      delay_step: 0
+      donotuse_steps: 0
+    sph_gauss_features:
+      scheduler: false
+      init_lr: 0.00036
+      final_lr: 0.00036
+      decay_step: 0
+      delay_step: 0
+      donotuse_steps: 0
+    bandwidth_sharpness:
+      scheduler: false
+      init_lr: 0.045 
+      final_lr: 0.045
+      decay_step: 0
+      delay_step: 0
+      donotuse_steps: 0
+    lobe_axis:
+      scheduler: false
+      init_lr: 0.003
+      final_lr: 0.003
+      decay_step: 0
+      delay_step: 0
+      donotuse_steps: 0
+  use_random_background: false
+  use_prunning: false
+  use_prunning_alpha: false
+  max_scale: -1.0
+
+
+save: 
+  models: "models"
+  screenshots: "train_results/screenshots"
+  metrics: "train_results/metrics"

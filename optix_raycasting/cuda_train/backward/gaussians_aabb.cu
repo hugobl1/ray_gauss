@@ -502,6 +502,7 @@ static __forceinline__ __device__ void computeRay( unsigned int idx_ray, float3&
     direction = normalize( d.x * U + d.y * V + W );
 }
 
+
 extern "C" __global__ void __raygen__rg()
 {
     const unsigned int idx_ray= optixGetLaunchIndex().x;

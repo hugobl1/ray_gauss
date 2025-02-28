@@ -2,9 +2,12 @@ import sys, logging,random
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 import optix as ox
 import cupy as cp
 import time
+from torchvision.utils import save_image, make_grid
+from pathlib import Path
 
 from tqdm import tqdm
 from classes import point_cloud,scene
@@ -24,9 +27,29 @@ log = logging.getLogger()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+def visualize_depth(depth: torch.Tensor, near: float=0.2, far: float=None) -> torch.Tensor:
+    """copied and adapted from R3DG"""
+    # depth = depth[0].detach().cpu().numpy()
+    depth = depth.detach().cpu().numpy()
+    colormap = matplotlib.colormaps['turbo']
+    curve_fn = lambda x: -np.log(x + np.finfo(np.float32).eps)
+    eps = np.finfo(np.float32).eps
+    near = max( near if near else depth.min(), 0)
+    far = far if far else depth.max()
+    near -= eps
+    far += eps
+    near, far, depth = [curve_fn(x) for x in [near, far, depth]]
+    depth = np.nan_to_num(
+        np.clip((depth - np.minimum(near, far)) / np.abs(far - near), 0, 1))
+    vis = colormap(depth)[:, :, :3]
+
+    out_depth = np.clip(np.nan_to_num(vis), 0., 1.)
+    return torch.from_numpy(out_depth).float().cuda().permute(2,0,1)
+
 def train(config, quiet=True):
   learnable_point_cloud=point_cloud.PointCloud(data_type=config.pointcloud.data_type,device=device)
-  opt_scene=scene.Scene(config=config,pointcloud=learnable_point_cloud,train_resolution_scales=config.scene.train_resolution_scales,test_resolution_scales=config.scene.test_resolution_scales)
+  opt_scene=scene.Scene(config=config,pointcloud=learnable_point_cloud,train_resolution_scales=config.scene.train_resolution_scales,test_resolution_scales=config.scene.test_resolution_scales,
+                      )  
 
   opt_scene.pointcloud.check_contiguous()
 
@@ -63,6 +86,9 @@ def train(config, quiet=True):
 
   start_time = time.time()
 
+  # setup visualization dir, not part of this by default
+  Path(config.save.screenshots, "visualize").mkdir(exist_ok=True, parents=True)
+  
   for iter in tqdm(range(first_iter,config.training.n_iters)):
     # Pick a random Camera
     if not viewpoint_stack:
@@ -105,7 +131,7 @@ def train(config, quiet=True):
                   config.training.max_prim_slice,opt_scene.pointcloud.num_sph_gauss, iteration=iter, jitter=config.training.jitter, rnd_sample=config.training.rnd_sample,supersampling=(config.training.supersampling_x,config.training.supersampling_y),white_background=config.scene.white_background,
                   hit_prim_idx=hit_prim_idx)
     positions,scales,normalized_quaternions,densities,color_features,sph_gauss_features,bandwidth_sharpness,lobe_axis=opt_scene.pointcloud.get_data()
-    image=r_ox.RenderOptixFunction.apply(positions,scales,normalized_quaternions,densities,color_features,
+    image, ray_bbox, ray_normals, ray_density, ray_depth=r_ox.RenderOptixFunction.apply(positions,scales,normalized_quaternions,densities,color_features,
                                          sph_gauss_features,bandwidth_sharpness,lobe_axis,
                                          settings)
     image_mean=utilities.reduce_supersampling(viewpoint_cam.image_width,viewpoint_cam.image_height,image,supersampling)
@@ -118,6 +144,40 @@ def train(config, quiet=True):
     train_loss.backward()
 
     torch.cuda.synchronize()
+    
+    # ----------------------------------------------------------------------------------------------
+    # VISUALIZE TRAINING PROGRESS
+    # ----------------------------------------------------------------------------------------------
+    # opt_scene.getTrainCameras(config.scene.train_resolution_scales).copy()
+    # for now use selected random camera
+    if iter % 10 == 0:
+      
+      bbox_mean=utilities.reduce_supersampling(viewpoint_cam.image_width,viewpoint_cam.image_height,ray_bbox,supersampling)
+      bbox_mean=bbox_mean.permute(2,0,1)
+      
+
+      
+      visualization_list = [
+        # make_grid requires shape BxCxHxW
+        image_mean,
+        # target images have shape H,W,C
+        gt_image,
+        visualize_depth( ray_depth.reshape(viewpoint_cam.image_height, viewpoint_cam.image_width) ),
+        # (render_pkg["depth_var"] / 0.001).clamp_max(1).reshape(1, viewpoint_cam.height, viewpoint_cam.width).repeat(3,1,1),
+        torch.zeros_like(image_mean),
+        ray_density.reshape(1, viewpoint_cam.image_height, viewpoint_cam.image_width).repeat(3,1,1),  # opacity
+        ray_normals.reshape(viewpoint_cam.image_height, viewpoint_cam.image_width, 3).permute(2,0,1) * 0.5 + 0.5,
+        bbox_mean,
+      ]
+      
+      grid = torch.stack(visualization_list, dim=0)
+      grid = make_grid(grid, nrow=4)
+      scale = grid.shape[-2] / 800
+      grid = torch.nn.functional.interpolate(grid[None], (int(grid.shape[-2]/scale), int(grid.shape[-1]/scale)))[0]
+      save_image(grid, Path(config.save.screenshots, "visualize", f"{iter:06d}.png"))
+    
+    # ----------------------------------------------------------------------------------------------
+    
     # print("Maximum norm of the gradient of the positions:",torch.max(torch.norm(opt_scene.pointcloud.positions.grad,dim=1)))
     if opt_scene.pointcloud.positions.grad is not None:
       opt_scene.pointcloud.accumulate_gradient(opt_scene.pointcloud.positions.grad)
