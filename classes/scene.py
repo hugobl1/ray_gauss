@@ -38,6 +38,9 @@ class Scene:
         elif os.path.exists(os.path.join(config.scene.source_path, "metadata.json")):
             print("Found metadata.json file, assuming multi scale Blender data set!")
             scene_info = sceneLoadTypeCallbacks["Multi-scale"](config.scene.source_path,config.pointcloud.ply.ply_name,config.scene.white_background, config.scene.eval, config.scene.load_allres)
+        elif config.scene.source_path == "/":
+            # custom test scene
+            return
         else:
             assert False, "Could not recognize scene type!"
 

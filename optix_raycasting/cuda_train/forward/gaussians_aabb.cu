@@ -554,7 +554,7 @@ static __forceinline__ __device__ void computeBufferForward(const unsigned int i
                 bbox_buffer[index_buffer]    += gaussian_density * BBOX_COLORS[ primitive_index % BBOX_COLORS_LEN ];
                 depth_buffer[index_buffer]   += gaussian_density * weight_density * t_sample;
                 // normal based on shortest axis
-                int shortest_axis = max(scales.x, scales.y) < scales.z ? (int)(scales.x > scales.y) : 2;
+                int shortest_axis = scales.x < scales.z ? (int)(scales.x >= scales.y) : (scales.z < scales.y ? 2 : 1);
                 float _ax[3] = {0,0,0};
                 _ax[shortest_axis] = 1.0f;
                 float3 ax = *reinterpret_cast<float3*>(_ax);

@@ -561,6 +561,26 @@ class PointCloud:
     self.num_accum=torch.zeros(len(self.positions),dtype=self.data_type,device=device)
     self.num_accum_gnv=torch.zeros(len(self.positions),dtype=self.data_type,device=device)
   
+  def set_gaussian(self, position, scale, rotation, color, opacity):
+    """for testing numerical stability"""
+    position = position.reshape(1,3)
+    scale = torch.log(scale.reshape(1,3))
+    rotation = rotation.reshape(1,4)
+    opacity = opacity.reshape(1,)
+      
+    self.positions    = nn.Parameter(position.requires_grad_(True))
+    self.quaternions  = nn.Parameter(rotation.requires_grad_(True))
+    self.scales       = nn.Parameter(scale.requires_grad_(True))
+    self.densities    = nn.Parameter(opacity.requires_grad_(True))
+    self.rgb          = nn.Parameter(color.reshape(1,3).requires_grad_(True))
+    
+    self.spherical_harmonics = nn.Parameter(color.reshape(1,3,1).contiguous().requires_grad_(True))
+    self.sph_shs_rest        = nn.Parameter(torch.zeros((1,3,2), dtype=torch.float32, device="cuda").contiguous().requires_grad_(True))
+    
+    self.sph_gauss_features  = nn.Parameter(torch.zeros_like(self.sph_shs_rest).requires_grad_(True))
+    self.bandwidth_sharpness = nn.Parameter( torch.zeros((1,1), dtype=self.data_type, device=self.device).requires_grad_(True) )
+    self.lobe_axis      = nn.Parameter( (torch.ones((1,3,3), dtype=self.data_type, device=self.device) * torch.eye(3, device=self.device)).requires_grad_(True) )
+    
   def prune_points(self,mask):
     "Delete points if they are in the mask"
     mask = ~mask
