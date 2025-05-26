@@ -35,7 +35,7 @@ The final data should be assembled in this form inside the folder `dataset-bundl
 2. **Reconstruct Dataset with Kapture**  
    ```bash
    python /path/to/your/conda/env\Scripts\kapture_import_bundler.py -v debug -i dataset-bundler\bundle.out -l dataset-bundler\imagelist-local.lst -im dataset-bundler\images --image_transfer link_absolute -o dataset-kapture --add-reconstruction
-   #For example: python C:\Users\JE\miniconda3\envs\python39-env\Scripts\kapture_export_colmap.py -v debug -i dataset-bundler\bundle.out -l dataset-bundler\imagelist-local.lst -im dataset-bundler\images --image_transfer link_absolute -o dataset-kapture --add-reconstruction
+   #For example: python C:\Users\JE\miniconda3\envs\python39-env\Scripts\kapture_import_bundler.py -v debug -i dataset-bundler\bundle.out -l dataset-bundler\imagelist-local.lst -im dataset-bundler\images --image_transfer link_absolute -o dataset-kapture --add-reconstruction
    ```
 
 3. **Crop borders of the images (optional)**  

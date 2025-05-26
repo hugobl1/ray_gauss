@@ -51,6 +51,7 @@ training:
   supersampling_y: 1
 
   normalize_quaternion: true
+  normalize_lobe_axis: false
   optimization:
     density:
       scheduler: true

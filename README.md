@@ -218,8 +218,37 @@ To render a camera path from a trained point cloud, use the script as follows:
 ```bash
 python render_camera_path.py -output "./output" -camera_path_filename "camera_path.json" -name_video "my_video"
 ```
-The `camera_path.json` file, which defines the camera path, can be generated using [NeRFStudio](https://nerf.studio/). 
 This script loads a pre-trained model, renders images along a specified camera path, and saves them in `output/camera_path/images/`. A video is then generated from the images and saved in `output/camera_path/video/`.
+
+The `camera_path.json` file, which defines the camera path, can be generated using [NeRFStudio](https://nerf.studio/) by training a similar scene and then exporting a `camera_path.json` file through NeRFStudio's graphical user interface. 
+To maintain consistency with our method, you should use the `ns-train` command with the following options: 
+
+```bash
+--assume_colmap_world_coordinate_convention=False \
+--orientation_method=none \
+--center_method=none \
+--auto-scale-poses=False \
+```
+
+# Processing Your Own Scenes with COLMAP
+
+To use your own scenes, ensure your dataset is structured correctly for the COLMAP loaders. The directory must include an `images` folder containing your image files and a `sparse` folder with subdirectories containing `cameras.bin`, `images.bin`, and `points3D.bin` files obtained using COLMAP reconstruction. Note that the camera models used for COLMAP reconstruction must be either `SIMPLE_PINHOLE` or `PINHOLE`. 
+
+The dataset structure must be as follows:
+
+```
+<location>
+|---images
+|   |---<image 0>
+|   |---<image 1>
+|   |---...
+|---sparse
+    |---0
+        |---cameras.bin
+        |---images.bin
+        |---points3D.bin
+```
+
 
 # Using a Reality Capture Dataset
 To use a dataset created with Reality Capture, refer to the [Reality Capture Instructions](./reality_capture/README.md).

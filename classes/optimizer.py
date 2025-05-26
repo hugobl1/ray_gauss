@@ -20,7 +20,7 @@ class OptimizerManager:
                 self.lr_scheduler.step()
         self.current_step+=1
     def zero_grad(self):
-        self.optimizer.zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
     def save_lr(self):
         self.lr_list.append(self.optimizer.param_groups[0]['lr'])
     def save_lr_plot(self, path):
@@ -126,10 +126,6 @@ class OptimizerManager:
 # Create an optimizer manager class that manages multiple optimizers and learning rate schedulers based on OptimizerManager
 class OptimizerManagerDict:
     def __init__(self, dict_optimizer):
-        # self.optimizer_manager_list = optimizer_manager_list
-        # self.optimizer_manager_dict={}
-        # for optimizer_manager,name in zip(optimizer_manager_list,names):
-        #     self.optimizer_manager_dict[name]=optimizer_manager
         self.optimizer_manager_dict=dict_optimizer
     def step(self):
         # for optimizer_manager in self.optimizer_manager_list:

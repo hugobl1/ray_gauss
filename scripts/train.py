@@ -21,9 +21,7 @@ from utils.optim_utils import define_optimizer_manager
 from utils.loss_utils import l1_loss, ssim
 from lpipsPyTorch import lpips
 
-
-logging.basicConfig(stream=sys.stdout, level= logging.INFO)
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -47,6 +45,8 @@ def visualize_depth(depth: torch.Tensor, near: float=0.2, far: float=None) -> to
     return torch.from_numpy(out_depth).float().cuda().permute(2,0,1)
 
 def train(config, quiet=True):
+  mempool = cp.get_default_memory_pool()
+
   learnable_point_cloud=point_cloud.PointCloud(data_type=config.pointcloud.data_type,device=device)
   opt_scene=scene.Scene(config=config,pointcloud=learnable_point_cloud,train_resolution_scales=config.scene.train_resolution_scales,test_resolution_scales=config.scene.test_resolution_scales,
                       )  
@@ -98,13 +98,9 @@ def train(config, quiet=True):
     
     gt_image = viewpoint_cam.original_image.cuda()
     
-    opt_scene.pointcloud.optim_managers.zero_grad()
-
     if iter==first_iter:
       ################# OPTIX #################
-      logger = ox.Logger(log)
-      ctx = ox.DeviceContext(validation_mode=False, log_callback_function=logger, log_callback_level=4)
-      ctx.cache_enabled = False
+      ctx=u_ox.create_context(log=log)
       pipeline_options = ox.PipelineCompileOptions(traversable_graph_flags=ox.TraversableGraphFlags.ALLOW_SINGLE_GAS,
                                                 num_payload_values=1,
                                                 num_attribute_values=0,
@@ -130,7 +126,7 @@ def train(config, quiet=True):
                   program_grps_bwd, pipeline_bwd, viewpoint_cam,
                   config.training.max_prim_slice,opt_scene.pointcloud.num_sph_gauss, iteration=iter, jitter=config.training.jitter, rnd_sample=config.training.rnd_sample,supersampling=(config.training.supersampling_x,config.training.supersampling_y),white_background=config.scene.white_background,
                   hit_prim_idx=hit_prim_idx)
-    positions,scales,normalized_quaternions,densities,color_features,sph_gauss_features,bandwidth_sharpness,lobe_axis=opt_scene.pointcloud.get_data()
+    positions,scales,normalized_quaternions,densities,color_features,sph_gauss_features,bandwidth_sharpness,lobe_axis=opt_scene.pointcloud.get_data(normalized_quaternion=not(cfg_train.normalize_quaternion),normalized_lobe_axis=not(cfg_train.normalize_lobe_axis))
     image, ray_bbox, ray_normals, ray_density, ray_depth=r_ox.RenderOptixFunction.apply(positions,scales,normalized_quaternions,densities,color_features,
                                          sph_gauss_features,bandwidth_sharpness,lobe_axis,
                                          settings)
@@ -179,11 +175,14 @@ def train(config, quiet=True):
     # ----------------------------------------------------------------------------------------------
     
     # print("Maximum norm of the gradient of the positions:",torch.max(torch.norm(opt_scene.pointcloud.positions.grad,dim=1)))
+
     if opt_scene.pointcloud.positions.grad is not None:
       opt_scene.pointcloud.accumulate_gradient(opt_scene.pointcloud.positions.grad)
       opt_scene.pointcloud.accumulate_gradient_gaussians_not_visible(opt_scene.pointcloud.positions.grad)
 
     opt_scene.pointcloud.optim_managers.step()
+    opt_scene.pointcloud.optim_managers.zero_grad()
+
     opt_scene.pointcloud.optim_managers.save_lr()
 
     losses.append(train_loss.item())
@@ -204,13 +203,12 @@ def train(config, quiet=True):
     
     # Densification
     if iter < cfg_train.densify_until_iter and iter>0:
-      with torch.no_grad():
-        if iter > cfg_train.densify_from_iter and iter % cfg_train.densification_interval == 0:
-          opt_scene.pointcloud.densify_and_prune(cfg_train.densify_grad_threshold, u_ox.SIGMA_THRESHOLD, opt_scene.cameras_extent, quiet=quiet)
-    
+      if iter > cfg_train.densify_from_iter and iter % cfg_train.densification_interval == 0:
+        opt_scene.pointcloud.densify_and_prune(cfg_train.densify_grad_threshold, u_ox.SIGMA_THRESHOLD, opt_scene.cameras_extent, quiet=quiet)
+        mempool.free_all_blocks()      
     if cfg_train.unlock_color_features:     
       unlock_freq=cfg_train.unlock_freq
-      if (iter>=500) and (iter%unlock_freq==0)and iter<=(config.training.limit_degree_tot*unlock_freq):
+      if (iter>0) and (iter%unlock_freq==0)and iter<=(config.training.limit_degree_tot*unlock_freq):
         degree_unlock=iter//unlock_freq
         if degree_unlock<=config.training.limit_degree_sh:
           opt_scene.pointcloud.unlock_spherical_harmonics((degree_unlock+1)**2)
@@ -232,7 +230,9 @@ def train(config, quiet=True):
     with torch.no_grad():
       opt_scene.pointcloud.densities[opt_scene.pointcloud.densities<0]=0
       if cfg_train.normalize_quaternion:
-        opt_scene.pointcloud.quaternions/=torch.norm(opt_scene.pointcloud.quaternions,dim=1)[:,None]
+        opt_scene.pointcloud.normalize_quaternion()
+      if opt_scene.pointcloud.num_sph_gauss>0 and cfg_train.normalize_lobe_axis:
+        opt_scene.pointcloud.normalize_lobe_axis()
       if not quiet:
         if iter%1000==0:
           print("Min minimum size gaussian: ", torch.min(opt_scene.pointcloud.filter_3D))
@@ -249,6 +249,9 @@ def train(config, quiet=True):
     ############################################################################################################
     if (not quiet and iter%1000==0) or (iter==config.training.n_iters-1):
       #Save the model
+      if not quiet:
+        opt_scene.pointcloud.save_model(iter,config.save.models)
+
       if (iter==config.training.n_iters-1):
         end_time=time.time()
         training_time=end_time-start_time

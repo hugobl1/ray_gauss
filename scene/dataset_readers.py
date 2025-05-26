@@ -132,7 +132,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder,zmin_zmax=No
         cam_infos.append(cam_info)
         # cam_info = CameraInfo(uid=uid, R=R, T=T, FoVy=FoVy, FoVx=FoVx, image=image,
         #                       image_path=image_path, image_name=image_name, width=width, height=height)
-    sys.stdout.write('\n')
+    #sys.stdout.write('\n')
     return cam_infos
 
 def fetchPly(path):
@@ -234,7 +234,7 @@ def readColmapSceneInfo(path, images, eval, config,llffhold=8):
                         fx,fy=f*ratio_x,f*ratio_y
                         cx,cy=cx*ratio_x,cy*ratio_y
                     elif scaled_intrinsics[key].model=="PINHOLE":
-                        fx,fy,cx,cy=scaled_intrinsics[key].params
+                        fx,fy,cx,cy=scaled_intrinsics[key].params[0:4]
                         fx,fy,cx,cy=fx*ratio_x,fy*ratio_y,cx*ratio_x,cy*ratio_y
                     scaled_params=np.array([fx,fy,cx,cy])
                     scaled_intrinsics[key]=scaled_intrinsics[key]._replace(params=scaled_params)

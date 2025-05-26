@@ -451,13 +451,13 @@ def PILtoTorch(pil_image, resolution):
       
 #Define cupy2torch that converts an unknown number of cupy arrays to torch tensors
 def cupy2torch(*args):
-    return [from_dlpack(x.toDlpack()) for x in args]
+    # return [from_dlpack(x.toDlpack()) for x in args]
+    return[torch.from_dlpack(x) for x in args]
   
 #Define torch2cupy that converts an unknown number of torch tensors to cupy arrays
 def torch2cupy(*args):
-    return [cp.fromDlpack(to_dlpack(x)) for x in args]
-
-
+    # return [cp.fromDlpack(to_dlpack(x)) for x in args]
+    return [cp.from_dlpack(x.detach()) for x in args]
 
 def inverse_sigmoid(x):
     return torch.log(x/(1-x))
