@@ -252,6 +252,7 @@ The dataset structure must be as follows:
 
 # Using a Reality Capture Dataset
 To use a dataset created with Reality Capture, refer to the [Reality Capture Instructions](./reality_capture/README.md).
+Since version 1.5, you can export directly in COLMAP format.
 
 # Acknowledgements
 
