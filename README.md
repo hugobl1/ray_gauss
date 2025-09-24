@@ -9,7 +9,7 @@
     <a href="https://scholar.google.fr/citations?user=3eO15d0AAAAJ&hl=fr">Alexis Paljic</a>
 
   </p>
-  <h2 align="center">WACV 2025</h2>
+  <h2 align="center">WACV 2025 (Best Paper - Algorithms)</h2>
 
   <h3 align="center"><a href="https://drive.google.com/file/d/1qbJjbScbUJOKoYc0iLhk1NE7rtcHp8lH/view?usp=sharing">Paper</a> | <a href="https://arxiv.org/pdf/2408.03356">arXiv</a> | <a href="https://raygauss.github.io/">Project Page</a>  | <a href="https://drive.google.com/file/d/1E0_Tg2QeMx2kyohPhfRtfV656oQFQ2Kv/view?usp=sharing">Blender Models</a>
   <div align="center"></div>
