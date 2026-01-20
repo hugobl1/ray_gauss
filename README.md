@@ -15,6 +15,7 @@
   <div align="center"></div>
 </p>
 
+## NEWS: An accelerated version of RayGauss, called RayGaussX, is available: [Project page](https://raygaussx.github.io/)
 
 <p align="center">
   <a href="">
