@@ -15,11 +15,11 @@
   <div align="center"></div>
 </p>
 
-
+<br>
 
 :triangular_flag_on_post: **NEWS: An accelerated version of RayGauss, called RayGaussX, is available: [Project page](https://raygaussx.github.io/)**
 
-
+<br>
 
 <p align="center">
   <a href="">
